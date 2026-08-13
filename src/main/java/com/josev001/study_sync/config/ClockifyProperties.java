@@ -1,11 +1,11 @@
 package com.josev001.study_sync.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
+// Classe de configuração que mapeia as propriedades do Clockify.
 @ConfigurationProperties(prefix = "clockify")
 public class ClockifyProperties {
-    
+
     private String apiKey;
     private String userId;
     private String workspaceId;

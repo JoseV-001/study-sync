@@ -1,5 +1,6 @@
 package com.josev001.study_sync.dto;
 
+// DTO que representa a resposta do usuário retornada pela API.
 public class UserResponse {
 
     private String id;
