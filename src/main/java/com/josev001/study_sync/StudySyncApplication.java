@@ -19,7 +19,7 @@ public class StudySyncApplication {
 	@Bean
 	CommandLineRunner testClockify(ClockifyClient clockifyClient) {
 		return args -> {
-			System.out.println("Usuário do Clockify: " + clockifyClient.getUser());
+			System.out.println("Time Entries: " + clockifyClient.getTimeEntries());
 		};
 	}
 
