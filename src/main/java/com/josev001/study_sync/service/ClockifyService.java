@@ -65,4 +65,20 @@ public class ClockifyService {
         return LocalDate.now(ZoneId.of("America/Sao_Paulo"))
                 .with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
     }
+
+    // Formata o total de horas estudadas na semana junto com a data atual.
+    public String getFormattedTotalStudyTime() {
+
+        Duration total = getTotalStudyTime();
+        LocalDate today = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+
+        long hours = total.toHours();
+        long minutes = total.toMinutesPart();
+
+        return "Total de horas da semana até o momento ("
+                + today
+                + "); "
+                + hours + "h"
+                + minutes + "min";
+    }
 }

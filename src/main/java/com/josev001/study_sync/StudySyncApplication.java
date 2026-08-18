@@ -22,7 +22,7 @@ public class StudySyncApplication {
     @Bean
     CommandLineRunner testWeeklyTotal(ClockifyService clockifyService) {
         return args -> {
-            Duration total = clockifyService.getTotalStudyTime();
+            String total = clockifyService.getFormattedTotalStudyTime();
 
             System.out.println("Total da semana: " + total);
         };
