@@ -31,12 +31,12 @@ public class StudySyncApplication {
 
             System.out.println("Total da semana: " + total);
 
-            String notionResponse = notionClient.getPage(
-                    "7a5ee13f3b8945e587a6debbde110504"
+            String databaseResponse = notionClient.getDatabase(
+                    "0957ebcb-7923-449d-bde0-6bd4884f78a7"
             );
 
-            System.out.println("Resposta Notion:");
-            System.out.println(notionResponse);
+            System.out.println("Database encontrada:");
+            System.out.println(databaseResponse);
         };
     }
 
