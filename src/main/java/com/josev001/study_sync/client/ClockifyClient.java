@@ -6,7 +6,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-
+import org.springframework.beans.factory.annotation.Qualifier;
 import java.util.List;
 
 
@@ -19,7 +19,10 @@ public class ClockifyClient {
     private final ClockifyProperties properties;
 
 
-    public ClockifyClient(RestClient restClient, ClockifyProperties properties) {
+    public ClockifyClient(
+            @Qualifier("clockifyRestClient") RestClient restClient,
+            ClockifyProperties properties
+    ) {
         this.restClient = restClient;
         this.properties = properties;
     }

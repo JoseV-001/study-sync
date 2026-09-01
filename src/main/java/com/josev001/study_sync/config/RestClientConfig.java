@@ -1,21 +1,33 @@
 package com.josev001.study_sync.config;
 
-// Classe de configuração usada para expor os objetos de apoio ao restante da aplicação.
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
 
-@Configuration // -> Indica que vai definir beans no contexto da aplicação
+@Configuration
 public class RestClientConfig {
 
+    // Cliente HTTP configurado para realizar requisições ao Clockify.
     @Bean
-    public RestClient restClient(ClockifyProperties properties) {
+    public RestClient clockifyRestClient(ClockifyProperties properties) {
         return RestClient.builder()
                 .baseUrl(properties.getBaseUrl())
                 .build();
     }
 
-
-
+    // Cliente HTTP configurado para realizar requisições ao Notion.
+    @Bean
+    public RestClient notionRestClient(NotionProperties properties) {
+        return RestClient.builder()
+                .baseUrl(properties.getBaseUrl())
+                .defaultHeader(
+                        "Authorization",
+                        "Bearer " + properties.getApiKey()
+                )
+                .defaultHeader(
+                        "Notion-Version",
+                        "2026-03-11"
+                )
+                .build();
+    }
 }

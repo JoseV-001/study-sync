@@ -1,6 +1,7 @@
 package com.josev001.study_sync;
 
 
+import com.josev001.study_sync.client.NotionClient;
 import com.josev001.study_sync.service.ClockifyService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -20,11 +21,22 @@ public class StudySyncApplication {
     }
 
     @Bean
-    CommandLineRunner testWeeklyTotal(ClockifyService clockifyService) {
+    CommandLineRunner testWeeklyTotal(
+            ClockifyService clockifyService,
+            NotionClient notionClient
+    ) {
         return args -> {
+
             String total = clockifyService.getFormattedTotalStudyTime();
 
             System.out.println("Total da semana: " + total);
+
+            String notionResponse = notionClient.getPage(
+                    "7a5ee13f3b8945e587a6debbde110504"
+            );
+
+            System.out.println("Resposta Notion:");
+            System.out.println(notionResponse);
         };
     }
 
