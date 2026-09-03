@@ -8,6 +8,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Bean;
+import com.josev001.study_sync.service.NotionService;
 
 import java.time.Duration;
 
@@ -21,21 +22,25 @@ public class StudySyncApplication {
     }
 
     @Bean
-    CommandLineRunner testWeeklyTotal(
+    CommandLineRunner syncWeeklyStudyTime(
             ClockifyService clockifyService,
-            NotionClient notionClient
+            NotionService notionService
     ) {
+
         return args -> {
 
-            String total = clockifyService.getFormattedTotalStudyTime();
+            Duration totalStudyTime =
+                    clockifyService.getTotalStudyTime();
 
-            System.out.println("Total da semana: " + total);
+            String syncedTime =
+                    notionService.updateCurrentWeekStudyTime(
+                            totalStudyTime
+                    );
 
-            String weeklyPlanning = notionClient.queryWeeklyPlanning();
-
-            System.out.println("\nPlanejamento Semanal:");
-            System.out.println(weeklyPlanning);
+            System.out.println(
+                    "Horas sincronizadas com o Notion: "
+                            + syncedTime
+            );
         };
     }
-
 }
