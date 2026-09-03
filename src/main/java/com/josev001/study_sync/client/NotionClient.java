@@ -4,6 +4,9 @@ import com.josev001.study_sync.config.NotionProperties;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.http.MediaType;
+
+import java.util.Map;
 
 @Component
 public class NotionClient {
@@ -38,6 +41,16 @@ public class NotionClient {
     public String getDatabase(String databaseId) {
         return restClient.get()
                 .uri("/databases/" + databaseId)
+                .retrieve()
+                .body(String.class);
+    }
+
+    // Busca os registros existentes no Planejamento Semanal.
+    public String queryWeeklyPlanning() {
+        return restClient.post()
+                .uri("/data_sources/" + properties.getDataSourceId() + "/query")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of())
                 .retrieve()
                 .body(String.class);
     }

@@ -8,6 +8,7 @@ public class NotionProperties {
     private String baseUrl;
     private String apiKey;
     private String databaseId;
+    private String dataSourceId;
 
     public String getBaseUrl() {
         return baseUrl;
@@ -31,5 +32,13 @@ public class NotionProperties {
 
     public void setDatabaseId(String databaseId) {
         this.databaseId = databaseId;
+    }
+
+    public String getDataSourceId() {
+        return dataSourceId;
+    }
+
+    public void setDataSourceId(String dataSourceId) {
+        this.dataSourceId = dataSourceId;
     }
 }
