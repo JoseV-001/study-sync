@@ -1,11 +1,16 @@
 package com.josev001.study_sync.Scheduler;
 
 import com.josev001.study_sync.service.StudySyncService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
 public class StudySyncScheduler {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(StudySyncScheduler.class);
 
     private final StudySyncService studySyncService;
 
@@ -21,11 +26,21 @@ public class StudySyncScheduler {
 
     public void syncWeeklyStudyTime() {
 
+        try{
+
+
         String syncedTime = studySyncService.syncCurrentWeek();
 
-        System.out.println(
+        logger.info(
                 "Horas sincronizadas automaticamente com o Notion: "
                         + syncedTime
         );
+        }catch(Exception e){
+
+            logger.error(
+                    "Erro ao sincronizar horas estudadas com o Notion: "
+                            + e.getMessage()
+            );
+        }
     }
 }

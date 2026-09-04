@@ -3,12 +3,12 @@ package com.josev001.study_sync.service;
 import com.josev001.study_sync.client.ClockifyClient;
 import com.josev001.study_sync.dto.TimeEntryDto;
 import org.springframework.stereotype.Service;
+
+import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.Duration;
-import java.util.List;
-import java.time.DayOfWeek;
 import java.time.temporal.TemporalAdjusters;
 
 @Service
@@ -18,10 +18,6 @@ public class ClockifyService {
 
     public ClockifyService(ClockifyClient clockifyClient) {
         this.clockifyClient = clockifyClient;
-    }
-
-    public List<TimeEntryDto> getTimeEntries() {
-        return clockifyClient.getTimeEntries();
     }
 
     // Soma a duração dos registros finalizados da semana atual.
@@ -34,20 +30,24 @@ public class ClockifyService {
                 .stream()
                 .filter(entry -> entry.timeInterval().duration() != null)
                 .filter(entry -> {
+
                     LocalDate entryDate = getEntryDate(entry);
 
-                    return !entryDate.isBefore(startOfWeek)//A data do registro não pode ser anterior à segunda-feira da semana atual
-                            && !entryDate.isAfter(endOfWeek);// a data não pode ser depois do domingo
-                    //segunda <= data <= domingo
+                    // Segunda-feira <= data do registro <= domingo.
+                    return !entryDate.isBefore(startOfWeek)
+                            && !entryDate.isAfter(endOfWeek);
                 })
-                .map(entry -> Duration.parse(entry.timeInterval().duration()))
+                .map(entry ->
+                        Duration.parse(entry.timeInterval().duration())
+                )
                 .reduce(Duration.ZERO, Duration::plus);
     }
 
-    // Converte a data/hora UTC recebida do Clockify para uma data no fuso de São Paulo.
+    // Converte a data/hora UTC do Clockify para a data no fuso de São Paulo.
     private LocalDate getEntryDate(TimeEntryDto entry) {
 
-        Instant start = Instant.parse(entry.timeInterval().start());
+        Instant start =
+                Instant.parse(entry.timeInterval().start());
 
         return start
                 .atZone(ZoneId.of("America/Sao_Paulo"))
@@ -57,28 +57,20 @@ public class ClockifyService {
     // Retorna a segunda-feira da semana atual.
     private LocalDate getStartOfCurrentWeek() {
         return LocalDate.now(ZoneId.of("America/Sao_Paulo"))
-                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                .with(
+                        TemporalAdjusters.previousOrSame(
+                                DayOfWeek.MONDAY
+                        )
+                );
     }
 
     // Retorna o domingo da semana atual.
     private LocalDate getEndOfCurrentWeek() {
         return LocalDate.now(ZoneId.of("America/Sao_Paulo"))
-                .with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-    }
-
-    // Formata o total de horas estudadas na semana junto com a data atual.
-    public String getFormattedTotalStudyTime() {
-
-        Duration total = getTotalStudyTime();
-        LocalDate today = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
-
-        long hours = total.toHours();
-        long minutes = total.toMinutesPart();
-
-        return "Total de horas da semana até o momento ("
-                + today
-                + "); "
-                + hours + "h"
-                + minutes + "min";
+                .with(
+                        TemporalAdjusters.nextOrSame(
+                                DayOfWeek.SUNDAY
+                        )
+                );
     }
 }
