@@ -63,4 +63,36 @@ public class SyncRun {
         this.errorMessage = errorMessage;
         this.finishedAt = finishedAt;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public LocalDate getWeekStart() {
+        return weekStart;
+    }
+
+    public String getTriggeredBy() {
+        return triggeredBy;
+    }
+
+    public SyncRunStatus getStatus() {
+        return status;
+    }
+
+    public Long getTotalMinutes() {
+        return totalMinutes;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getFinishedAt() {
+        return finishedAt;
+    }
 }

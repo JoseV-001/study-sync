@@ -14,6 +14,21 @@ POST http://localhost:8080/sync/current-week
 POST http://localhost:8080/sync/week?startDate=2026-09-07
 ```
 
+Consultas disponíveis:
+
+```text
+GET http://localhost:8080/sync/history
+GET http://localhost:8080/sync/weeks
+GET http://localhost:8080/sync/weeks?from=2026-01-01&to=2026-09-14
+```
+
+As sincronizações tentam novamente em caso de erro. O padrão é de 3 tentativas, com intervalo de 30 segundos, configurável em `application.properties`:
+
+```properties
+study-sync.retry.max-attempts=3
+study-sync.retry.delay-ms=30000
+```
+
 O endpoint `/sync/week` aceita qualquer data da semana; o sistema encontra automaticamente a segunda-feira daquela semana.
 
 ## Configuração

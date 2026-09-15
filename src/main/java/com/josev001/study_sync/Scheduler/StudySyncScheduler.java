@@ -45,7 +45,7 @@ public class StudySyncScheduler {
 
     private void syncPreviousWeek(String trigger) {
         try {
-        SyncResultDto result = studySyncService.syncWeek(
+        SyncResultDto result = studySyncService.syncWeekWithRetry(
                 java.time.LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo")).minusWeeks(1),
                 trigger
         );

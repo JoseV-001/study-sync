@@ -50,4 +50,28 @@ public class WeeklyStudy {
         this.notionTime = notionTime;
         this.syncedAt = syncedAt;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public LocalDate getWeekStart() {
+        return weekStart;
+    }
+
+    public LocalDate getWeekEnd() {
+        return weekEnd;
+    }
+
+    public long getTotalMinutes() {
+        return totalMinutes;
+    }
+
+    public String getNotionTime() {
+        return notionTime;
+    }
+
+    public Instant getSyncedAt() {
+        return syncedAt;
+    }
 }
