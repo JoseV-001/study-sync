@@ -30,6 +30,8 @@ const elements = {
     lastStatus: document.querySelector('#last-status'),
     lastStatusDetail: document.querySelector('#last-status-detail'),
     notionApiKey: document.querySelector('#notion-api-key'),
+    pageSubtitle: document.querySelector('#page-subtitle'),
+    pageTitle: document.querySelector('#page-title'),
     periodHours: document.querySelector('#period-hours'),
     periodRange: document.querySelector('#period-range'),
     previousWeekButton: document.querySelector('#previous-week-button'),
@@ -38,6 +40,7 @@ const elements = {
     settingsForm: document.querySelector('#settings-form'),
     settingsMessage: document.querySelector('#settings-message'),
     settingsState: document.querySelector('#settings-state'),
+    sidebarConnection: document.querySelector('#sidebar-connection'),
     subjectChart: document.querySelector('#subject-chart'),
     syncMessage: document.querySelector('#sync-message'),
     trendChart: document.querySelector('#trend-chart'),
@@ -47,6 +50,14 @@ const elements = {
     weeksCount: document.querySelector('#weeks-count'),
     weeksState: document.querySelector('#weeks-state'),
     weeksTableBody: document.querySelector('#weeks-table-body')
+};
+
+const viewMeta = {
+    overview: ['Visao geral', 'Acompanhe seu ritmo e sua constancia.'],
+    analytics: ['Analises', 'Entenda os dias e horarios em que voce rende melhor.'],
+    syncs: ['Sincronizacoes', 'Atualize os registros e acompanhe suas semanas.'],
+    history: ['Historico', 'Consulte todas as execucoes e eventuais falhas.'],
+    settings: ['Configuracoes', 'Gerencie as integracoes usadas pelo Study Sync.']
 };
 
 function dateToInput(date) {
@@ -107,6 +118,7 @@ function renderSettings(settings) {
     const clockify = settings.clockifyConfigured ? 'Clockify configurado' : 'Clockify pendente';
     const notion = settings.notionConfigured ? 'Notion configurado' : 'Notion opcional';
     elements.settingsState.textContent = `${clockify} - ${notion}`;
+    elements.sidebarConnection.textContent = settings.clockifyConfigured ? 'Clockify conectado' : 'Configuracao pendente';
 }
 
 function renderWeeks() {
@@ -183,9 +195,30 @@ function formatChartLabel(label, granularity) {
     return label.length === 10 ? formatDate(label) : label;
 }
 
+function switchView(view) {
+    const selectedView = viewMeta[view] ? view : 'overview';
+    document.querySelectorAll('[data-panel]').forEach((panel) => {
+        panel.hidden = panel.dataset.panel !== selectedView;
+    });
+    document.querySelectorAll('[data-view]').forEach((button) => {
+        button.classList.toggle('active', button.dataset.view === selectedView);
+    });
+    elements.pageTitle.textContent = viewMeta[selectedView][0];
+    elements.pageSubtitle.textContent = viewMeta[selectedView][1];
+
+    const showAnalyticsFilters = selectedView === 'overview' || selectedView === 'analytics';
+    document.querySelector('#analytics-toolbar').classList.toggle('is-hidden', !showAnalyticsFilters);
+    elements.analyticsMessage.classList.toggle('is-hidden', !showAnalyticsFilters);
+    window.history.replaceState(null, '', `#${selectedView}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 function renderBarChart(container, points, options = {}) {
     container.innerHTML = '';
-    const visiblePoints = options.limit ? points.slice(0, options.limit) : points;
+    const orderedPoints = options.horizontal
+        ? [...points].sort((first, second) => second.totalMinutes - first.totalMinutes)
+        : points;
+    const visiblePoints = options.limit ? orderedPoints.slice(0, options.limit) : orderedPoints;
     const max = Math.max(...visiblePoints.map((point) => point.totalMinutes), 0);
     if (!visiblePoints.length || max === 0) {
         const empty = document.createElement('p');
@@ -203,9 +236,8 @@ function renderBarChart(container, points, options = {}) {
         track.className = 'bar-track';
         const fill = document.createElement('div');
         fill.className = 'bar-fill';
-        const percentage = Math.max((point.totalMinutes / max) * 100, 2);
-        if (options.horizontal) fill.style.width = `${percentage}%`;
-        else fill.style.height = `${percentage}%`;
+        const percentage = point.totalMinutes > 0 ? Math.max((point.totalMinutes / max) * 100, 4) : 0;
+        fill.style.setProperty('--bar-size', `${percentage}%`);
         track.appendChild(fill);
         const label = document.createElement('span');
         label.className = 'bar-label';
@@ -213,7 +245,8 @@ function renderBarChart(container, points, options = {}) {
         const value = document.createElement('span');
         value.className = 'bar-value';
         value.textContent = formatHours(point.totalMinutes);
-        item.append(label, track, value);
+        if (options.horizontal) item.append(label, track, value);
+        else item.append(track, label, value);
         container.appendChild(item);
     });
 }
@@ -239,7 +272,7 @@ function renderAnalytics(analytics) {
     elements.trendChartTotal.textContent = formatHours(analytics.totalMinutes);
     renderBarChart(elements.trendChart, analytics[granularity], { labelFormatter: (label) => formatChartLabel(label, granularity) });
     renderBarChart(elements.weekdayChart, analytics.weekday);
-    renderBarChart(elements.hourChart, analytics.hourly);
+    renderBarChart(elements.hourChart, analytics.hourly, { labelFormatter: (label) => label.slice(0, 3) });
     renderBarChart(elements.subjectChart, analytics.subjects, { horizontal: true, limit: 8 });
     elements.analyticsState.textContent = `${analytics.activeDays} dia${analytics.activeDays === 1 ? '' : 's'} com estudo`;
 }
@@ -269,6 +302,7 @@ async function loadDashboard() {
         renderWeeks();
         renderHistory();
         renderAnalytics(analytics);
+        elements.analyticsMessage.classList.remove('error-text');
         elements.lastRefresh.textContent = `Atualizado as ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
     } catch (error) {
         elements.weeksState.textContent = 'Indisponivel';
@@ -278,7 +312,7 @@ async function loadDashboard() {
         setEmptyState(elements.weeksTableBody, 4, 'Nao foi possivel carregar os registros.', true);
         setEmptyState(elements.historyTableBody, 5, 'Nao foi possivel carregar o historico.', true);
         elements.analyticsMessage.textContent = 'Nao foi possivel carregar os analytics para o periodo selecionado.';
-        elements.analyticsMessage.className = 'muted analytics-message error-text';
+        elements.analyticsMessage.classList.add('error-text');
         elements.syncMessage.textContent = 'Verifique se a aplicacao e o banco estao em execucao.';
         elements.syncMessage.className = 'muted error-text';
         elements.lastRefresh.textContent = 'Falha na atualizacao';
@@ -308,7 +342,7 @@ async function saveSettings(event) {
 async function importAnalyticsPeriod() {
     elements.importAnalyticsButton.disabled = true;
     elements.analyticsMessage.textContent = 'Importando registros do Clockify...';
-    elements.analyticsMessage.className = 'muted analytics-message';
+    elements.analyticsMessage.classList.remove('error-text');
     try {
         const params = new URLSearchParams({ from: elements.analyticsFrom.value, to: elements.analyticsTo.value });
         const response = await fetch(`/sync/import?${params}`, { method: 'POST' });
@@ -318,7 +352,7 @@ async function importAnalyticsPeriod() {
         await loadDashboard();
     } catch (error) {
         elements.analyticsMessage.textContent = error.message;
-        elements.analyticsMessage.className = 'muted analytics-message error-text';
+        elements.analyticsMessage.classList.add('error-text');
     } finally {
         elements.importAnalyticsButton.disabled = false;
     }
@@ -355,6 +389,7 @@ function applyQuickFilter(days, button) {
 }
 
 initializeAnalyticsFilters();
+document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => switchView(button.dataset.view)));
 elements.refreshButton.addEventListener('click', loadDashboard);
 elements.settingsForm.addEventListener('submit', saveSettings);
 elements.applyAnalyticsButton.addEventListener('click', loadDashboard);
@@ -363,4 +398,5 @@ elements.importAnalyticsButton.addEventListener('click', importAnalyticsPeriod);
 document.querySelectorAll('.filter-button').forEach((button) => button.addEventListener('click', () => applyQuickFilter(Number(button.dataset.days), button)));
 elements.previousWeekButton.addEventListener('click', () => runSync('/sync/previous-week', 'Sincronizacao da semana anterior'));
 elements.currentWeekButton.addEventListener('click', () => runSync('/sync/current-week', 'Sincronizacao da semana atual'));
+switchView(window.location.hash.slice(1));
 loadDashboard();
