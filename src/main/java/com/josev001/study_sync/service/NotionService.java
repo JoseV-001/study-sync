@@ -20,10 +20,13 @@ public class NotionService {
         this.notionClient = notionClient;
     }
 
-    // Atualiza no Notion o total de horas estudadas na semana atual.
     public String updateCurrentWeekStudyTime(Duration totalStudyTime) {
+        LocalDate startOfWeek = LocalDate.now(ZoneId.of("America/Sao_Paulo"))
+                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        return updateWeekStudyTime(startOfWeek, totalStudyTime);
+    }
 
-        LocalDate startOfWeek = getStartOfCurrentWeek();
+    public String updateWeekStudyTime(LocalDate startOfWeek, Duration totalStudyTime) {
 
         NotionQueryResponseDto response =
                 notionClient.queryWeeklyPlanning(startOfWeek);
@@ -48,16 +51,6 @@ public class NotionService {
         );
 
         return formattedTime;
-    }
-
-    // Retorna a segunda-feira da semana atual.
-    private LocalDate getStartOfCurrentWeek() {
-        return LocalDate.now(ZoneId.of("America/Sao_Paulo"))
-                .with(
-                        TemporalAdjusters.previousOrSame(
-                                DayOfWeek.MONDAY
-                        )
-                );
     }
 
     // Converte a duração para o padrão usado no Notion: 12:35H.

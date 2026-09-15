@@ -14,17 +14,23 @@ import java.time.temporal.TemporalAdjusters;
 @Service
 public class ClockifyService {
 
+    private static final ZoneId APP_ZONE = ZoneId.of("America/Sao_Paulo");
+
     private final ClockifyClient clockifyClient;
 
     public ClockifyService(ClockifyClient clockifyClient) {
         this.clockifyClient = clockifyClient;
     }
 
-    // Soma a duração dos registros finalizados da semana atual.
     public Duration getTotalStudyTime() {
+        LocalDate startOfWeek = LocalDate.now(APP_ZONE)
+                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        return getTotalStudyTime(startOfWeek);
+    }
 
-        LocalDate startOfWeek = getStartOfCurrentWeek();
-        LocalDate endOfWeek = getEndOfCurrentWeek();
+    // Soma os registros finalizados de uma semana iniciada na segunda-feira.
+    public Duration getTotalStudyTime(LocalDate startOfWeek) {
+        LocalDate endOfWeek = startOfWeek.plusDays(6);
 
         return clockifyClient.getTimeEntries()
                 .stream()
@@ -50,27 +56,7 @@ public class ClockifyService {
                 Instant.parse(entry.timeInterval().start());
 
         return start
-                .atZone(ZoneId.of("America/Sao_Paulo"))
+                .atZone(APP_ZONE)
                 .toLocalDate();
-    }
-
-    // Retorna a segunda-feira da semana atual.
-    private LocalDate getStartOfCurrentWeek() {
-        return LocalDate.now(ZoneId.of("America/Sao_Paulo"))
-                .with(
-                        TemporalAdjusters.previousOrSame(
-                                DayOfWeek.MONDAY
-                        )
-                );
-    }
-
-    // Retorna o domingo da semana atual.
-    private LocalDate getEndOfCurrentWeek() {
-        return LocalDate.now(ZoneId.of("America/Sao_Paulo"))
-                .with(
-                        TemporalAdjusters.nextOrSame(
-                                DayOfWeek.SUNDAY
-                        )
-                );
     }
 }
