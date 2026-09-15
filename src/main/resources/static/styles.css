@@ -63,6 +63,38 @@ h2 { margin-bottom: 0; font-size: 1.2rem; letter-spacing: 0; }
     box-shadow: var(--shadow);
 }
 
+.settings-panel {
+    padding: 22px 26px;
+    margin-bottom: 20px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+}
+
+.settings-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.settings-form label { display: grid; gap: 7px; min-width: 0; }
+.settings-form label > span { color: var(--muted); font-size: 0.8rem; font-weight: 700; }
+.settings-form b { color: var(--danger); }
+.settings-form em { font-weight: 500; }
+.settings-form input {
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 11px;
+    border: 1px solid #b9c6cd;
+    border-radius: 6px;
+    color: var(--ink);
+    background: var(--surface);
+}
+.settings-form input:focus { outline: 3px solid rgba(22, 124, 128, 0.16); border-color: var(--accent); }
+.settings-message { margin: 12px 0 0; }
+
 .action-bar .muted { margin: 7px 0 0; }
 .action-buttons { flex-wrap: wrap; justify-content: flex-end; }
 
@@ -112,6 +144,8 @@ tbody tr:hover { background: #fafcfc; }
     .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .action-bar { align-items: flex-start; flex-direction: column; }
     .action-buttons { justify-content: flex-start; }
+    .settings-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .settings-form .button { grid-column: 1 / -1; justify-self: start; width: auto; }
 }
 
 @media (max-width: 600px) {
@@ -119,7 +153,10 @@ tbody tr:hover { background: #fafcfc; }
     .topbar { align-items: flex-start; flex-direction: column; margin-bottom: 26px; }
     .topbar-actions { justify-content: space-between; width: 100%; }
     .action-bar { padding: 20px; }
+    .settings-panel { padding: 20px; }
     .action-buttons, .button { width: 100%; }
+    .settings-form { grid-template-columns: 1fr; }
+    .settings-form .button { grid-column: auto; width: 100%; }
     .stats-grid { grid-template-columns: 1fr; }
     .stat-card { min-height: 116px; }
     .section-heading { align-items: flex-start; flex-direction: column; gap: 4px; }

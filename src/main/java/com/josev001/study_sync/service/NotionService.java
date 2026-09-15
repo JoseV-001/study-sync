@@ -15,9 +15,16 @@ import java.time.temporal.TemporalAdjusters;
 public class NotionService {
 
     private final NotionClient notionClient;
+    private final IntegrationSettingsService settingsService;
 
-    public NotionService(NotionClient notionClient) {
+    public NotionService(NotionClient notionClient, IntegrationSettingsService settingsService) {
         this.notionClient = notionClient;
+        this.settingsService = settingsService;
+    }
+
+    public boolean isConfigured() {
+        String apiKey = settingsService.getNotionApiKey();
+        return apiKey != null && !apiKey.isBlank();
     }
 
     public String updateCurrentWeekStudyTime(Duration totalStudyTime) {
@@ -54,7 +61,7 @@ public class NotionService {
     }
 
     // Converte a duração para o padrão usado no Notion: 12:35H.
-    private String formatStudyTime(Duration duration) {
+    public String formatStudyTime(Duration duration) {
 
         long hours = duration.toHours();
         long minutes = duration.toMinutesPart();

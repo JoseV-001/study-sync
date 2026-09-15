@@ -105,7 +105,9 @@ public class StudySyncService {
 
         try {
             Duration totalStudyTime = clockifyService.getTotalStudyTime(startOfWeek);
-            String syncedTime = notionService.updateWeekStudyTime(startOfWeek, totalStudyTime);
+            String syncedTime = notionService.isConfigured()
+                    ? notionService.updateWeekStudyTime(startOfWeek, totalStudyTime)
+                    : notionService.formatStudyTime(totalStudyTime);
             long totalMinutes = totalStudyTime.toMinutes();
             Instant syncedAt = Instant.now();
 

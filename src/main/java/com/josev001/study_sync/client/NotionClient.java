@@ -2,6 +2,7 @@ package com.josev001.study_sync.client;
 
 import com.josev001.study_sync.config.NotionProperties;
 import com.josev001.study_sync.dto.NotionQueryResponseDto;
+import com.josev001.study_sync.service.IntegrationSettingsService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -16,19 +17,23 @@ public class NotionClient {
 
     private final RestClient restClient;
     private final NotionProperties properties;
+    private final IntegrationSettingsService settingsService;
 
     public NotionClient(
             @Qualifier("notionRestClient") RestClient restClient,
-            NotionProperties properties
+            NotionProperties properties,
+            IntegrationSettingsService settingsService
     ) {
         this.restClient = restClient;
         this.properties = properties;
+        this.settingsService = settingsService;
     }
 
     // Busca os registros existentes no Planejamento Semanal.
     public String queryWeeklyPlanning() {
         return restClient.post()
                 .uri("/data_sources/" + properties.getDataSourceId() + "/query")
+                .header("Authorization", "Bearer " + getApiKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of())
                 .retrieve()
@@ -49,6 +54,7 @@ public class NotionClient {
 
         return restClient.post()
                 .uri("/data_sources/" + properties.getDataSourceId() + "/query")
+                .header("Authorization", "Bearer " + getApiKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(body)
                 .retrieve()
@@ -76,10 +82,19 @@ public class NotionClient {
 
         restClient.patch()
                 .uri("/pages/" + pageId)
+                .header("Authorization", "Bearer " + getApiKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(body)
                 .retrieve()
                 .toBodilessEntity();
+    }
+
+    private String getApiKey() {
+        String apiKey = settingsService.getNotionApiKey();
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IllegalStateException("Notion API key is not configured");
+        }
+        return apiKey;
     }
 
 }

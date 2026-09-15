@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,6 +44,7 @@ class StudySyncServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(weeklyStudyRepository.findByWeekStart(org.mockito.ArgumentMatchers.any()))
                 .thenReturn(Optional.empty());
+        when(notionService.isConfigured()).thenReturn(true);
     }
 
     @Test
@@ -59,5 +61,20 @@ class StudySyncServiceTest {
         assertThat(result.syncedTime()).isEqualTo("12:35H");
         verify(clockifyService).getTotalStudyTime(monday);
         verify(notionService).updateWeekStudyTime(monday, total);
+    }
+
+    @Test
+    void syncWeekStillStoresStudyTimeWithoutNotion() {
+        LocalDate monday = LocalDate.of(2026, 9, 7);
+        Duration total = Duration.ofHours(5).plusMinutes(20);
+        when(notionService.isConfigured()).thenReturn(false);
+        when(notionService.formatStudyTime(total)).thenReturn("5:20H");
+        when(clockifyService.getTotalStudyTime(monday)).thenReturn(total);
+
+        SyncResultDto result = studySyncService.syncWeek(monday);
+
+        assertThat(result.syncedTime()).isEqualTo("5:20H");
+        verify(notionService, never()).updateWeekStudyTime(monday, total);
+        verify(notionService).formatStudyTime(total);
     }
 }

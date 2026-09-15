@@ -20,6 +20,28 @@
     </header>
 
     <main>
+        <section class="settings-panel" aria-labelledby="settings-title">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Configuracao</p>
+                    <h2 id="settings-title">Integracoes</h2>
+                </div>
+                <span id="settings-state" class="section-state">Verificando...</span>
+            </div>
+            <form id="settings-form" class="settings-form">
+                <label>
+                    <span>Chave API do Clockify <b>*</b></span>
+                    <input id="clockify-api-key" name="clockifyApiKey" type="password" autocomplete="new-password" placeholder="Obrigatoria para sincronizar">
+                </label>
+                <label>
+                    <span>Chave API do Notion <em>(opcional)</em></span>
+                    <input id="notion-api-key" name="notionApiKey" type="password" autocomplete="new-password" placeholder="Deixe vazio para sincronizar apenas localmente">
+                </label>
+                <button id="save-settings-button" class="button button-primary" type="submit">Salvar integracoes</button>
+            </form>
+            <p id="settings-message" class="muted settings-message">As chaves nao sao exibidas depois de salvas.</p>
+        </section>
+
         <section class="action-bar" aria-labelledby="actions-title">
             <div>
                 <p class="section-kicker">Sincronizacao</p>

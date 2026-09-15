@@ -5,6 +5,7 @@ const state = {
 
 const elements = {
     averageHours: document.querySelector('#average-hours'),
+    clockifyApiKey: document.querySelector('#clockify-api-key'),
     currentWeekButton: document.querySelector('#current-week-button'),
     historyState: document.querySelector('#history-state'),
     historyTableBody: document.querySelector('#history-table-body'),
@@ -15,11 +16,22 @@ const elements = {
     periodRange: document.querySelector('#period-range'),
     previousWeekButton: document.querySelector('#previous-week-button'),
     refreshButton: document.querySelector('#refresh-button'),
+    saveSettingsButton: document.querySelector('#save-settings-button'),
+    settingsForm: document.querySelector('#settings-form'),
+    settingsMessage: document.querySelector('#settings-message'),
+    settingsState: document.querySelector('#settings-state'),
     syncMessage: document.querySelector('#sync-message'),
+    notionApiKey: document.querySelector('#notion-api-key'),
     weeksCount: document.querySelector('#weeks-count'),
     weeksState: document.querySelector('#weeks-state'),
     weeksTableBody: document.querySelector('#weeks-table-body')
 };
+
+function renderSettings(settings) {
+    const clockify = settings.clockifyConfigured ? 'Clockify configurado' : 'Clockify pendente';
+    const notion = settings.notionConfigured ? 'Notion configurado' : 'Notion opcional';
+    elements.settingsState.textContent = `${clockify} - ${notion}`;
+}
 
 function parseDate(value) {
     const [year, month, day] = value.split('-').map(Number);
@@ -127,24 +139,58 @@ async function loadDashboard() {
     elements.lastRefresh.textContent = 'Atualizando...';
     elements.weeksState.textContent = 'Carregando...';
     elements.historyState.textContent = 'Carregando...';
+    elements.settingsState.textContent = 'Verificando...';
     try {
-        const [weeks, history] = await Promise.all([
+        const [weeks, history, settings] = await Promise.all([
             fetchJson('/sync/weeks'),
-            fetchJson('/sync/history')
+            fetchJson('/sync/history'),
+            fetchJson('/sync/settings')
         ]);
         state.weeks = weeks;
         state.history = history;
+        renderSettings(settings);
         renderWeeks();
         renderHistory();
         elements.lastRefresh.textContent = `Atualizado as ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
     } catch (error) {
         elements.weeksState.textContent = 'Indisponivel';
         elements.historyState.textContent = 'Indisponivel';
+        elements.settingsState.textContent = 'Indisponivel';
         setEmptyState(elements.weeksTableBody, 4, 'Nao foi possivel carregar os registros.', true);
         setEmptyState(elements.historyTableBody, 5, 'Nao foi possivel carregar o historico.', true);
         elements.syncMessage.textContent = 'Verifique se a aplicacao e o banco estao em execucao.';
         elements.syncMessage.className = 'muted error-text';
         elements.lastRefresh.textContent = 'Falha na atualizacao';
+    }
+}
+
+async function saveSettings(event) {
+    event.preventDefault();
+    elements.saveSettingsButton.disabled = true;
+    elements.settingsMessage.textContent = 'Salvando integracoes...';
+    elements.settingsMessage.className = 'muted settings-message';
+    try {
+        const response = await fetch('/sync/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                clockifyApiKey: elements.clockifyApiKey.value,
+                notionApiKey: elements.notionApiKey.value
+            })
+        });
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.detail || 'Nao foi possivel salvar as integracoes.');
+        }
+        renderSettings(await response.json());
+        elements.clockifyApiKey.value = '';
+        elements.notionApiKey.value = '';
+        elements.settingsMessage.textContent = 'Integracoes salvas com sucesso.';
+    } catch (error) {
+        elements.settingsMessage.textContent = error.message;
+        elements.settingsMessage.className = 'muted settings-message error-text';
+    } finally {
+        elements.saveSettingsButton.disabled = false;
     }
 }
 
@@ -168,6 +214,7 @@ async function runSync(url, label) {
 }
 
 elements.refreshButton.addEventListener('click', loadDashboard);
+elements.settingsForm.addEventListener('submit', saveSettings);
 elements.previousWeekButton.addEventListener('click', () => runSync('/sync/previous-week', 'Sincronizacao da semana anterior'));
 elements.currentWeekButton.addEventListener('click', () => runSync('/sync/current-week', 'Sincronizacao da semana atual'));
 loadDashboard();

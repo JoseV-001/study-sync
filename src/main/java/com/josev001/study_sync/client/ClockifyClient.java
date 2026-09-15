@@ -2,6 +2,7 @@ package com.josev001.study_sync.client;
 
 import com.josev001.study_sync.config.ClockifyProperties;
 import com.josev001.study_sync.dto.TimeEntryDto;
+import com.josev001.study_sync.service.IntegrationSettingsService;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -17,20 +18,23 @@ public class ClockifyClient {
 
     private final RestClient restClient;
     private final ClockifyProperties properties;
+    private final IntegrationSettingsService settingsService;
 
 
     public ClockifyClient(
             @Qualifier("clockifyRestClient") RestClient restClient,
-            ClockifyProperties properties
+            ClockifyProperties properties,
+            IntegrationSettingsService settingsService
     ) {
         this.restClient = restClient;
         this.properties = properties;
+        this.settingsService = settingsService;
     }
 
     public String getUser() {
         return restClient.get()
                 .uri("/user")
-                .header("X-Api-Key", properties.getApiKey())
+                .header("X-Api-Key", getApiKey())
                 .retrieve()
                 .body(String.class);
     }
@@ -41,9 +45,17 @@ public class ClockifyClient {
                 .uri("/workspaces/" + properties.getWorkspaceId()
                         + "/user/" + properties.getUserId()
                         + "/time-entries")
-                .header("X-Api-Key", properties.getApiKey())
+                .header("X-Api-Key", getApiKey())
                 .retrieve()
                 .body(new ParameterizedTypeReference<List<TimeEntryDto>>() {});
+    }
+
+    private String getApiKey() {
+        String apiKey = settingsService.getClockifyApiKey();
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IllegalStateException("Clockify API key is not configured");
+        }
+        return apiKey;
     }
 
 }
