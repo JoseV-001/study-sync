@@ -76,4 +76,6 @@ Com a aplicação iniciada, abra `http://localhost:8080/` para acessar a dashboa
 
 No Windows, também é possível iniciar com duplo clique em `start-study-sync.bat`. O script verifica o PostgreSQL, compila o JAR na primeira execução, inicia a aplicação e abre a dashboard automaticamente. As variáveis `CLOCKIFY_API_KEY` e `NOTION_API_KEY` ainda precisam estar configuradas para que os botões de sincronização façam chamadas externas.
 
+A chave do Clockify é obrigatória para a sincronização. A integração com o Notion é opcional porque atualmente depende do modelo e da estrutura específicos do workspace usado neste projeto; ela funciona no meu ambiente, mas ainda não é compatível com workspaces de outras pessoas. Sem a chave do Notion, o sistema continua sincronizando e armazenando as horas localmente.
+
 Para gerar uma versão nativa portátil com Java incluído, execute `package-study-sync.ps1`. O executável será criado em `dist\StudySync\StudySync.exe`. Essa distribuição não exige Maven nem Java instalado no computador de destino, mas ainda utiliza o PostgreSQL local.
