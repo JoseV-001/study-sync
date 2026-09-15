@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: study-sync-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: study_sync
+      POSTGRES_USER: study_sync
+      POSTGRES_PASSWORD: study_sync
+    ports:
+      - "5432:5432"
+    volumes:
+      - study_sync_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  study_sync_postgres_data:

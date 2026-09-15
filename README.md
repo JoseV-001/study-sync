@@ -25,6 +25,24 @@ CLOCKIFY_API_KEY=...
 NOTION_API_KEY=...
 ```
 
+O projeto usa PostgreSQL para manter o resumo semanal e o histórico das sincronizações. Para subir o banco localmente com Docker:
+
+```text
+docker compose up -d postgres
+```
+
+Os valores padrão são:
+
+```text
+DATABASE_URL=jdbc:postgresql://localhost:5432/study_sync
+DATABASE_USERNAME=study_sync
+DATABASE_PASSWORD=study_sync
+```
+
+As tabelas são criadas e atualizadas automaticamente pelo Flyway na inicialização da aplicação.
+
+Para usar outro banco, defina `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` antes de iniciar.
+
 O horário automático pode ser alterado em `application.properties`:
 
 ```properties

@@ -30,7 +30,7 @@ public class StudySyncScheduler {
     @EventListener(ApplicationReadyEvent.class)
     public void syncOnStartup() {
         if (syncOnStartup) {
-            syncPreviousWeek("ao abrir a aplicação");
+            syncPreviousWeek("startup");
         }
     }
 
@@ -40,12 +40,15 @@ public class StudySyncScheduler {
     )
 
     public void syncWeeklyStudyTime() {
-        syncPreviousWeek("no agendamento de segunda-feira");
+        syncPreviousWeek("scheduler");
     }
 
     private void syncPreviousWeek(String trigger) {
         try {
-        SyncResultDto result = studySyncService.syncPreviousWeek();
+        SyncResultDto result = studySyncService.syncWeek(
+                java.time.LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo")).minusWeeks(1),
+                trigger
+        );
 
         logger.info(
                 "Horas sincronizadas {} com o Notion para a semana "

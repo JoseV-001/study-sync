@@ -1,6 +1,10 @@
 package com.josev001.study_sync.service;
 
 import com.josev001.study_sync.dto.SyncResultDto;
+import com.josev001.study_sync.persistence.SyncRun;
+import com.josev001.study_sync.persistence.SyncRunRepository;
+import com.josev001.study_sync.persistence.WeeklyStudyRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -9,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -23,8 +28,22 @@ class StudySyncServiceTest {
     @Mock
     private NotionService notionService;
 
+    @Mock
+    private WeeklyStudyRepository weeklyStudyRepository;
+
+    @Mock
+    private SyncRunRepository syncRunRepository;
+
     @InjectMocks
     private StudySyncService studySyncService;
+
+    @BeforeEach
+    void setUp() {
+        when(syncRunRepository.save(org.mockito.ArgumentMatchers.any(SyncRun.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(weeklyStudyRepository.findByWeekStart(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(Optional.empty());
+    }
 
     @Test
     void syncWeekUsesTheMondayOfTheProvidedWeek() {
