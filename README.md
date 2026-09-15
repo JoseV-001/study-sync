@@ -71,3 +71,5 @@ Para iniciar localmente:
 ```text
 ./mvnw spring-boot:run
 ```
+
+Com a aplicação iniciada, abra `http://localhost:8080/` para acessar a dashboard. Ela mostra as semanas salvas, o histórico das execuções e permite disparar manualmente a sincronização da semana atual ou anterior.

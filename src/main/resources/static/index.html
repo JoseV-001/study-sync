@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Study Sync</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="app-shell">
+    <header class="topbar">
+        <div>
+            <p class="eyebrow">STUDY SYNC</p>
+            <h1>Painel de estudos</h1>
+        </div>
+        <div class="topbar-actions">
+            <span id="last-refresh" class="last-refresh">Atualizando...</span>
+            <button id="refresh-button" class="button button-secondary" type="button">Atualizar</button>
+        </div>
+    </header>
+
+    <main>
+        <section class="action-bar" aria-labelledby="actions-title">
+            <div>
+                <p class="section-kicker">Sincronizacao</p>
+                <h2 id="actions-title">Manter o Notion em dia</h2>
+                <p id="sync-message" class="muted">Pronto para sincronizar.</p>
+            </div>
+            <div class="action-buttons">
+                <button id="previous-week-button" class="button button-primary" type="button">
+                    Sincronizar semana anterior
+                </button>
+                <button id="current-week-button" class="button button-secondary" type="button">
+                    Sincronizar semana atual
+                </button>
+            </div>
+        </section>
+
+        <section class="stats-grid" aria-label="Resumo do periodo">
+            <article class="stat-card">
+                <span class="stat-label">Horas no periodo</span>
+                <strong id="period-hours" class="stat-value">--</strong>
+                <span id="period-range" class="stat-detail">Ultimas 12 semanas</span>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">Media semanal</span>
+                <strong id="average-hours" class="stat-value">--</strong>
+                <span class="stat-detail">Com base nos registros salvos</span>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">Semanas registradas</span>
+                <strong id="weeks-count" class="stat-value">--</strong>
+                <span class="stat-detail">No banco de dados</span>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">Ultima execucao</span>
+                <strong id="last-status" class="stat-value">--</strong>
+                <span id="last-status-detail" class="stat-detail">Nenhum historico encontrado</span>
+            </article>
+        </section>
+
+        <section class="content-section" aria-labelledby="weeks-title">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Acompanhamento</p>
+                    <h2 id="weeks-title">Semanas sincronizadas</h2>
+                </div>
+                <span id="weeks-state" class="section-state">Carregando...</span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Semana</th>
+                        <th>Total estudado</th>
+                        <th>Notion</th>
+                        <th>Sincronizada em</th>
+                    </tr>
+                    </thead>
+                    <tbody id="weeks-table-body">
+                    <tr><td colspan="4" class="empty-state">Carregando registros...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="content-section" aria-labelledby="history-title">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Auditoria</p>
+                    <h2 id="history-title">Historico de sincronizacoes</h2>
+                </div>
+                <span id="history-state" class="section-state">Carregando...</span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Semana</th>
+                        <th>Origem</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th>Executada em</th>
+                    </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                    <tr><td colspan="5" class="empty-state">Carregando historico...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+<script src="/app.js" defer></script>
+</body>
+</html>
