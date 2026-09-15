@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-$projectPath = Split-Path -Parent $PSScriptRoot
+$projectPath = $PSScriptRoot
 $jarPath = Join-Path $projectPath 'target\study-sync-0.0.1-SNAPSHOT.jar'
 $serviceName = 'postgresql-x64-18'
 
