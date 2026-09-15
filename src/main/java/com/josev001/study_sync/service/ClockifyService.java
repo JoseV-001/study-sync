@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
+import java.util.List;
 
 @Service
 public class ClockifyService {
@@ -30,22 +31,29 @@ public class ClockifyService {
 
     // Soma os registros finalizados de uma semana iniciada na segunda-feira.
     public Duration getTotalStudyTime(LocalDate startOfWeek) {
-        LocalDate endOfWeek = startOfWeek.plusDays(6);
+        return getTotalStudyTime(getStudyEntries(startOfWeek, startOfWeek.plusDays(6)));
+    }
 
-        return clockifyClient.getTimeEntries()
+    public List<TimeEntryDto> getStudyEntries(LocalDate from, LocalDate to) {
+        if (to.isBefore(from)) {
+            throw new IllegalArgumentException("The end date must not be before the start date");
+        }
+
+        Instant rangeStart = from.atStartOfDay(APP_ZONE).toInstant();
+        Instant rangeEnd = to.plusDays(1).atStartOfDay(APP_ZONE).toInstant();
+        return clockifyClient.getTimeEntries(rangeStart, rangeEnd)
                 .stream()
                 .filter(entry -> entry.timeInterval().duration() != null)
                 .filter(entry -> {
-
                     LocalDate entryDate = getEntryDate(entry);
-
-                    // Segunda-feira <= data do registro <= domingo.
-                    return !entryDate.isBefore(startOfWeek)
-                            && !entryDate.isAfter(endOfWeek);
+                    return !entryDate.isBefore(from) && !entryDate.isAfter(to);
                 })
-                .map(entry ->
-                        Duration.parse(entry.timeInterval().duration())
-                )
+                .toList();
+    }
+
+    public Duration getTotalStudyTime(List<TimeEntryDto> entries) {
+        return entries.stream()
+                .map(entry -> Duration.parse(entry.timeInterval().duration()))
                 .reduce(Duration.ZERO, Duration::plus);
     }
 

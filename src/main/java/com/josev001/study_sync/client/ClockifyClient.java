@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -15,6 +17,10 @@ import java.util.List;
 
 @Component// -> Faz o spring gerenciar o ClockifyClient
 public class ClockifyClient {
+
+    private static final int PAGE_SIZE = 1_000;
+    private static final ParameterizedTypeReference<List<TimeEntryDto>> TIME_ENTRIES_TYPE =
+            new ParameterizedTypeReference<>() {};
 
     private final RestClient restClient;
     private final ClockifyProperties properties;
@@ -39,15 +45,34 @@ public class ClockifyClient {
                 .body(String.class);
     }
 
-    // Realiza uma requisição GET ao Clockify para buscar os registros de tempo do usuário.
-    public List<TimeEntryDto> getTimeEntries() {
-        return restClient.get()
-                .uri("/workspaces/" + properties.getWorkspaceId()
-                        + "/user/" + properties.getUserId()
-                        + "/time-entries")
-                .header("X-Api-Key", getApiKey())
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<TimeEntryDto>>() {});
+    public List<TimeEntryDto> getTimeEntries(Instant start, Instant end) {
+        List<TimeEntryDto> entries = new ArrayList<>();
+
+        for (int page = 1; ; page++) {
+            int currentPage = page;
+            List<TimeEntryDto> pageEntries = restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/workspaces/{workspaceId}/user/{userId}/time-entries")
+                            .queryParam("start", start)
+                            .queryParam("end", end)
+                            .queryParam("page", currentPage)
+                            .queryParam("page-size", PAGE_SIZE)
+                            .build(properties.getWorkspaceId(), properties.getUserId()))
+                    .header("X-Api-Key", getApiKey())
+                    .retrieve()
+                    .body(TIME_ENTRIES_TYPE);
+
+            if (pageEntries == null || pageEntries.isEmpty()) {
+                break;
+            }
+
+            entries.addAll(pageEntries);
+            if (pageEntries.size() < PAGE_SIZE) {
+                break;
+            }
+        }
+
+        return entries;
     }
 
     private String getApiKey() {

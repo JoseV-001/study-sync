@@ -5,7 +5,10 @@ import com.josev001.study_sync.dto.SyncHistoryDto;
 import com.josev001.study_sync.dto.WeeklyStudyDto;
 import com.josev001.study_sync.dto.IntegrationSettingsDto;
 import com.josev001.study_sync.dto.IntegrationSettingsRequest;
+import com.josev001.study_sync.dto.StudyAnalyticsDto;
+import com.josev001.study_sync.dto.StudyImportDto;
 import com.josev001.study_sync.service.IntegrationSettingsService;
+import com.josev001.study_sync.service.StudyAnalyticsService;
 import com.josev001.study_sync.service.StudySyncService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -28,13 +31,16 @@ public class StudySyncController {
 
     private final StudySyncService studySyncService;
     private final IntegrationSettingsService settingsService;
+    private final StudyAnalyticsService studyAnalyticsService;
 
     public StudySyncController(
             StudySyncService studySyncService,
-            IntegrationSettingsService settingsService
+            IntegrationSettingsService settingsService,
+            StudyAnalyticsService studyAnalyticsService
     ) {
         this.studySyncService = studySyncService;
         this.settingsService = settingsService;
+        this.studyAnalyticsService = studyAnalyticsService;
     }
 
     @PostMapping("/current-week")
@@ -88,5 +94,33 @@ public class StudySyncController {
             @Valid @RequestBody IntegrationSettingsRequest request
     ) {
         return settingsService.saveSettings(request);
+    }
+
+    @PostMapping("/import")
+    public StudyImportDto importStudyEntries(
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate from,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate to
+    ) {
+        return studySyncService.importStudyEntries(from, to);
+    }
+
+    @GetMapping("/analytics")
+    public StudyAnalyticsDto getAnalytics(
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate from,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate to
+    ) {
+        LocalDate today = LocalDate.now();
+        return studyAnalyticsService.getAnalytics(
+                from != null ? from : today.minusDays(29),
+                to != null ? to : today
+        );
     }
 }

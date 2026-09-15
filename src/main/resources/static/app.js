@@ -1,17 +1,35 @@
-const state = {
-    weeks: [],
-    history: []
-};
+const state = { weeks: [], history: [], analytics: null };
 
 const elements = {
+    analyticsActiveDays: document.querySelector('#analytics-active-days'),
+    analyticsAverage: document.querySelector('#analytics-average'),
+    analyticsFrom: document.querySelector('#analytics-from'),
+    analyticsGranularity: document.querySelector('#analytics-granularity'),
+    analyticsLeastDay: document.querySelector('#analytics-least-day'),
+    analyticsLeastDayDetail: document.querySelector('#analytics-least-day-detail'),
+    analyticsMessage: document.querySelector('#analytics-message'),
+    analyticsMostDay: document.querySelector('#analytics-most-day'),
+    analyticsMostDayDetail: document.querySelector('#analytics-most-day-detail'),
+    analyticsPeakHour: document.querySelector('#analytics-peak-hour'),
+    analyticsPeakHourDetail: document.querySelector('#analytics-peak-hour-detail'),
+    analyticsRange: document.querySelector('#analytics-range'),
+    analyticsState: document.querySelector('#analytics-state'),
+    analyticsTo: document.querySelector('#analytics-to'),
+    analyticsTopSubject: document.querySelector('#analytics-top-subject'),
+    analyticsTopSubjectDetail: document.querySelector('#analytics-top-subject-detail'),
+    analyticsTotal: document.querySelector('#analytics-total'),
+    applyAnalyticsButton: document.querySelector('#apply-analytics-button'),
     averageHours: document.querySelector('#average-hours'),
     clockifyApiKey: document.querySelector('#clockify-api-key'),
     currentWeekButton: document.querySelector('#current-week-button'),
     historyState: document.querySelector('#history-state'),
     historyTableBody: document.querySelector('#history-table-body'),
+    hourChart: document.querySelector('#hour-chart'),
+    importAnalyticsButton: document.querySelector('#import-analytics-button'),
     lastRefresh: document.querySelector('#last-refresh'),
     lastStatus: document.querySelector('#last-status'),
     lastStatusDetail: document.querySelector('#last-status-detail'),
+    notionApiKey: document.querySelector('#notion-api-key'),
     periodHours: document.querySelector('#period-hours'),
     periodRange: document.querySelector('#period-range'),
     previousWeekButton: document.querySelector('#previous-week-button'),
@@ -20,17 +38,30 @@ const elements = {
     settingsForm: document.querySelector('#settings-form'),
     settingsMessage: document.querySelector('#settings-message'),
     settingsState: document.querySelector('#settings-state'),
+    subjectChart: document.querySelector('#subject-chart'),
     syncMessage: document.querySelector('#sync-message'),
-    notionApiKey: document.querySelector('#notion-api-key'),
+    trendChart: document.querySelector('#trend-chart'),
+    trendChartTitle: document.querySelector('#trend-chart-title'),
+    trendChartTotal: document.querySelector('#trend-chart-total'),
+    weekdayChart: document.querySelector('#weekday-chart'),
     weeksCount: document.querySelector('#weeks-count'),
     weeksState: document.querySelector('#weeks-state'),
     weeksTableBody: document.querySelector('#weeks-table-body')
 };
 
-function renderSettings(settings) {
-    const clockify = settings.clockifyConfigured ? 'Clockify configurado' : 'Clockify pendente';
-    const notion = settings.notionConfigured ? 'Notion configurado' : 'Notion opcional';
-    elements.settingsState.textContent = `${clockify} - ${notion}`;
+function dateToInput(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function initializeAnalyticsFilters() {
+    const today = new Date();
+    const start = new Date(today);
+    start.setDate(today.getDate() - 29);
+    elements.analyticsFrom.value = dateToInput(start);
+    elements.analyticsTo.value = dateToInput(today);
 }
 
 function parseDate(value) {
@@ -50,9 +81,7 @@ function formatDateTime(value) {
 
 function formatMinutes(minutes) {
     const totalMinutes = Number(minutes || 0);
-    const hours = Math.floor(totalMinutes / 60);
-    const remainingMinutes = totalMinutes % 60;
-    return `${hours}h ${String(remainingMinutes).padStart(2, '0')}min`;
+    return `${Math.floor(totalMinutes / 60)}h ${String(totalMinutes % 60).padStart(2, '0')}min`;
 }
 
 function formatHours(minutes) {
@@ -74,30 +103,40 @@ function setEmptyState(element, colspan, message, error = false) {
     element.appendChild(row);
 }
 
+function renderSettings(settings) {
+    const clockify = settings.clockifyConfigured ? 'Clockify configurado' : 'Clockify pendente';
+    const notion = settings.notionConfigured ? 'Notion configurado' : 'Notion opcional';
+    elements.settingsState.textContent = `${clockify} - ${notion}`;
+}
+
 function renderWeeks() {
     const weeks = state.weeks;
     elements.weeksCount.textContent = weeks.length;
     elements.weeksState.textContent = `${weeks.length} registro${weeks.length === 1 ? '' : 's'}`;
-
     if (!weeks.length) {
         setEmptyState(elements.weeksTableBody, 4, 'Nenhuma semana sincronizada no periodo.');
         return;
     }
 
     const totalMinutes = weeks.reduce((sum, week) => sum + Number(week.totalMinutes || 0), 0);
-    const averageMinutes = totalMinutes / weeks.length;
     elements.periodHours.textContent = formatHours(totalMinutes);
-    elements.averageHours.textContent = formatHours(averageMinutes);
+    elements.averageHours.textContent = formatHours(totalMinutes / weeks.length);
     elements.periodRange.textContent = `${formatDate(weeks[weeks.length - 1].weekStartDate)} a ${formatDate(weeks[0].weekEndDate)}`;
-
     elements.weeksTableBody.innerHTML = '';
     weeks.forEach((week) => {
         const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${formatDate(week.weekStartDate)} - ${formatDate(week.weekEndDate)}</td>
-            <td><strong>${formatMinutes(week.totalMinutes)}</strong></td>
-            <td>${week.notionTime || '--'}</td>
-            <td>${formatDateTime(week.syncedAt)}</td>`;
+        const values = [`${formatDate(week.weekStartDate)} - ${formatDate(week.weekEndDate)}`, formatMinutes(week.totalMinutes), week.notionTime || '--', formatDateTime(week.syncedAt)];
+        values.forEach((value, index) => {
+            const cell = document.createElement('td');
+            if (index === 1) {
+                const strong = document.createElement('strong');
+                strong.textContent = value;
+                cell.appendChild(strong);
+            } else {
+                cell.textContent = value;
+            }
+            row.appendChild(cell);
+        });
         elements.weeksTableBody.appendChild(row);
     });
 }
@@ -118,15 +157,91 @@ function renderHistory() {
     elements.historyTableBody.innerHTML = '';
     history.forEach((run) => {
         const row = document.createElement('tr');
-        const statusClass = String(run.status || '').toLowerCase();
-        row.innerHTML = `
-            <td>${formatDate(run.weekStartDate)} - ${formatDate(run.weekEndDate)}</td>
-            <td>${run.triggeredBy || '--'}</td>
-            <td><span class="status status-${statusClass}">${statusLabel(run.status)}</span></td>
-            <td>${run.totalMinutes == null ? '--' : formatMinutes(run.totalMinutes)}</td>
-            <td>${formatDateTime(run.createdAt)}</td>`;
+        const week = document.createElement('td');
+        week.textContent = `${formatDate(run.weekStartDate)} - ${formatDate(run.weekEndDate)}`;
+        const trigger = document.createElement('td');
+        trigger.textContent = run.triggeredBy || '--';
+        const statusCell = document.createElement('td');
+        const status = document.createElement('span');
+        status.className = `status status-${String(run.status || '').toLowerCase()}`;
+        status.textContent = statusLabel(run.status);
+        statusCell.appendChild(status);
+        const total = document.createElement('td');
+        total.textContent = run.totalMinutes == null ? '--' : formatMinutes(run.totalMinutes);
+        const created = document.createElement('td');
+        created.textContent = formatDateTime(run.createdAt);
+        row.append(week, trigger, statusCell, total, created);
         elements.historyTableBody.appendChild(row);
     });
+}
+
+function formatChartLabel(label, granularity) {
+    if (granularity === 'monthly') {
+        const [year, month] = label.split('-');
+        return `${month}/${year.slice(2)}`;
+    }
+    return label.length === 10 ? formatDate(label) : label;
+}
+
+function renderBarChart(container, points, options = {}) {
+    container.innerHTML = '';
+    const visiblePoints = options.limit ? points.slice(0, options.limit) : points;
+    const max = Math.max(...visiblePoints.map((point) => point.totalMinutes), 0);
+    if (!visiblePoints.length || max === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'chart-empty';
+        empty.textContent = 'Sem registros para este periodo.';
+        container.appendChild(empty);
+        return;
+    }
+
+    visiblePoints.forEach((point) => {
+        const item = document.createElement('div');
+        item.className = 'bar-item';
+        item.title = `${point.label}: ${formatMinutes(point.totalMinutes)}`;
+        const track = document.createElement('div');
+        track.className = 'bar-track';
+        const fill = document.createElement('div');
+        fill.className = 'bar-fill';
+        const percentage = Math.max((point.totalMinutes / max) * 100, 2);
+        if (options.horizontal) fill.style.width = `${percentage}%`;
+        else fill.style.height = `${percentage}%`;
+        track.appendChild(fill);
+        const label = document.createElement('span');
+        label.className = 'bar-label';
+        label.textContent = options.labelFormatter ? options.labelFormatter(point.label) : point.label;
+        const value = document.createElement('span');
+        value.className = 'bar-value';
+        value.textContent = formatHours(point.totalMinutes);
+        item.append(label, track, value);
+        container.appendChild(item);
+    });
+}
+
+function renderAnalytics(analytics) {
+    state.analytics = analytics;
+    elements.analyticsTotal.textContent = formatHours(analytics.totalMinutes);
+    elements.analyticsAverage.textContent = formatMinutes(analytics.averageDailyMinutes);
+    elements.analyticsActiveDays.textContent = analytics.activeDays;
+    elements.analyticsRange.textContent = `${formatDate(analytics.from)} a ${formatDate(analytics.to)}`;
+    elements.analyticsTopSubject.textContent = analytics.topSubject.label;
+    elements.analyticsTopSubjectDetail.textContent = formatMinutes(analytics.topSubject.totalMinutes);
+    elements.analyticsMostDay.textContent = analytics.mostStudiedDay.label;
+    elements.analyticsMostDayDetail.textContent = formatMinutes(analytics.mostStudiedDay.totalMinutes);
+    elements.analyticsLeastDay.textContent = analytics.leastStudiedDay.label;
+    elements.analyticsLeastDayDetail.textContent = formatMinutes(analytics.leastStudiedDay.totalMinutes);
+    elements.analyticsPeakHour.textContent = analytics.peakStudyHour.label;
+    elements.analyticsPeakHourDetail.textContent = formatMinutes(analytics.peakStudyHour.totalMinutes);
+
+    const granularity = elements.analyticsGranularity.value;
+    const title = { daily: 'Horas por dia', weekly: 'Horas por semana', monthly: 'Horas por mes' }[granularity];
+    elements.trendChartTitle.textContent = title;
+    elements.trendChartTotal.textContent = formatHours(analytics.totalMinutes);
+    renderBarChart(elements.trendChart, analytics[granularity], { labelFormatter: (label) => formatChartLabel(label, granularity) });
+    renderBarChart(elements.weekdayChart, analytics.weekday);
+    renderBarChart(elements.hourChart, analytics.hourly);
+    renderBarChart(elements.subjectChart, analytics.subjects, { horizontal: true, limit: 8 });
+    elements.analyticsState.textContent = `${analytics.activeDays} dia${analytics.activeDays === 1 ? '' : 's'} com estudo`;
 }
 
 async function fetchJson(url) {
@@ -135,29 +250,35 @@ async function fetchJson(url) {
     return response.json();
 }
 
+function analyticsUrl() {
+    const params = new URLSearchParams({ from: elements.analyticsFrom.value, to: elements.analyticsTo.value });
+    return `/sync/analytics?${params}`;
+}
+
 async function loadDashboard() {
     elements.lastRefresh.textContent = 'Atualizando...';
     elements.weeksState.textContent = 'Carregando...';
     elements.historyState.textContent = 'Carregando...';
     elements.settingsState.textContent = 'Verificando...';
+    elements.analyticsState.textContent = 'Carregando...';
     try {
-        const [weeks, history, settings] = await Promise.all([
-            fetchJson('/sync/weeks'),
-            fetchJson('/sync/history'),
-            fetchJson('/sync/settings')
-        ]);
+        const [weeks, history, settings, analytics] = await Promise.all([fetchJson('/sync/weeks'), fetchJson('/sync/history'), fetchJson('/sync/settings'), fetchJson(analyticsUrl())]);
         state.weeks = weeks;
         state.history = history;
         renderSettings(settings);
         renderWeeks();
         renderHistory();
+        renderAnalytics(analytics);
         elements.lastRefresh.textContent = `Atualizado as ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
     } catch (error) {
         elements.weeksState.textContent = 'Indisponivel';
         elements.historyState.textContent = 'Indisponivel';
         elements.settingsState.textContent = 'Indisponivel';
+        elements.analyticsState.textContent = 'Indisponivel';
         setEmptyState(elements.weeksTableBody, 4, 'Nao foi possivel carregar os registros.', true);
         setEmptyState(elements.historyTableBody, 5, 'Nao foi possivel carregar o historico.', true);
+        elements.analyticsMessage.textContent = 'Nao foi possivel carregar os analytics para o periodo selecionado.';
+        elements.analyticsMessage.className = 'muted analytics-message error-text';
         elements.syncMessage.textContent = 'Verifique se a aplicacao e o banco estao em execucao.';
         elements.syncMessage.className = 'muted error-text';
         elements.lastRefresh.textContent = 'Falha na atualizacao';
@@ -170,18 +291,8 @@ async function saveSettings(event) {
     elements.settingsMessage.textContent = 'Salvando integracoes...';
     elements.settingsMessage.className = 'muted settings-message';
     try {
-        const response = await fetch('/sync/settings', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                clockifyApiKey: elements.clockifyApiKey.value,
-                notionApiKey: elements.notionApiKey.value
-            })
-        });
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(error.detail || 'Nao foi possivel salvar as integracoes.');
-        }
+        const response = await fetch('/sync/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clockifyApiKey: elements.clockifyApiKey.value, notionApiKey: elements.notionApiKey.value }) });
+        if (!response.ok) throw new Error('Nao foi possivel salvar as integracoes.');
         renderSettings(await response.json());
         elements.clockifyApiKey.value = '';
         elements.notionApiKey.value = '';
@@ -191,6 +302,25 @@ async function saveSettings(event) {
         elements.settingsMessage.className = 'muted settings-message error-text';
     } finally {
         elements.saveSettingsButton.disabled = false;
+    }
+}
+
+async function importAnalyticsPeriod() {
+    elements.importAnalyticsButton.disabled = true;
+    elements.analyticsMessage.textContent = 'Importando registros do Clockify...';
+    elements.analyticsMessage.className = 'muted analytics-message';
+    try {
+        const params = new URLSearchParams({ from: elements.analyticsFrom.value, to: elements.analyticsTo.value });
+        const response = await fetch(`/sync/import?${params}`, { method: 'POST' });
+        if (!response.ok) throw new Error('Nao foi possivel importar o periodo. Verifique a chave do Clockify.');
+        const result = await response.json();
+        elements.analyticsMessage.textContent = `${result.importedEntries} registro${result.importedEntries === 1 ? '' : 's'} importado${result.importedEntries === 1 ? '' : 's'}: ${formatMinutes(result.totalMinutes)}.`;
+        await loadDashboard();
+    } catch (error) {
+        elements.analyticsMessage.textContent = error.message;
+        elements.analyticsMessage.className = 'muted analytics-message error-text';
+    } finally {
+        elements.importAnalyticsButton.disabled = false;
     }
 }
 
@@ -213,8 +343,24 @@ async function runSync(url, label) {
     }
 }
 
+function applyQuickFilter(days, button) {
+    const end = new Date();
+    const start = new Date(end);
+    start.setDate(end.getDate() - (days - 1));
+    elements.analyticsFrom.value = dateToInput(start);
+    elements.analyticsTo.value = dateToInput(end);
+    document.querySelectorAll('.filter-button').forEach((item) => item.classList.remove('active'));
+    button.classList.add('active');
+    loadDashboard();
+}
+
+initializeAnalyticsFilters();
 elements.refreshButton.addEventListener('click', loadDashboard);
 elements.settingsForm.addEventListener('submit', saveSettings);
+elements.applyAnalyticsButton.addEventListener('click', loadDashboard);
+elements.analyticsGranularity.addEventListener('change', () => state.analytics && renderAnalytics(state.analytics));
+elements.importAnalyticsButton.addEventListener('click', importAnalyticsPeriod);
+document.querySelectorAll('.filter-button').forEach((button) => button.addEventListener('click', () => applyQuickFilter(Number(button.dataset.days), button)));
 elements.previousWeekButton.addEventListener('click', () => runSync('/sync/previous-week', 'Sincronizacao da semana anterior'));
 elements.currentWeekButton.addEventListener('click', () => runSync('/sync/current-week', 'Sincronizacao da semana atual'));
 loadDashboard();

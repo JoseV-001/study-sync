@@ -3,6 +3,8 @@ package com.josev001.study_sync.service;
 import com.josev001.study_sync.dto.SyncResultDto;
 import com.josev001.study_sync.dto.SyncHistoryDto;
 import com.josev001.study_sync.dto.WeeklyStudyDto;
+import com.josev001.study_sync.dto.StudyImportDto;
+import com.josev001.study_sync.dto.TimeEntryDto;
 import com.josev001.study_sync.persistence.SyncRun;
 import com.josev001.study_sync.persistence.SyncRunRepository;
 import com.josev001.study_sync.persistence.WeeklyStudy;
@@ -31,6 +33,7 @@ public class StudySyncService {
     private final NotionService notionService;
     private final WeeklyStudyRepository weeklyStudyRepository;
     private final SyncRunRepository syncRunRepository;
+    private final StudyEntryService studyEntryService;
 
     @Value("${study-sync.retry.max-attempts:3}")
     private int retryMaxAttempts;
@@ -42,12 +45,14 @@ public class StudySyncService {
             ClockifyService clockifyService,
             NotionService notionService,
             WeeklyStudyRepository weeklyStudyRepository,
-            SyncRunRepository syncRunRepository
+            SyncRunRepository syncRunRepository,
+            StudyEntryService studyEntryService
     ) {
         this.clockifyService = clockifyService;
         this.notionService = notionService;
         this.weeklyStudyRepository = weeklyStudyRepository;
         this.syncRunRepository = syncRunRepository;
+        this.studyEntryService = studyEntryService;
     }
 
     @Transactional(noRollbackFor = RuntimeException.class)
@@ -104,7 +109,9 @@ public class StudySyncService {
         );
 
         try {
-            Duration totalStudyTime = clockifyService.getTotalStudyTime(startOfWeek);
+            List<TimeEntryDto> entries = clockifyService.getStudyEntries(startOfWeek, startOfWeek.plusDays(6));
+            studyEntryService.storeEntries(entries);
+            Duration totalStudyTime = clockifyService.getTotalStudyTime(entries);
             String syncedTime = notionService.isConfigured()
                     ? notionService.updateWeekStudyTime(startOfWeek, totalStudyTime)
                     : notionService.formatStudyTime(totalStudyTime);
@@ -161,6 +168,14 @@ public class StudySyncService {
                         weeklyStudy.getSyncedAt()
                 ))
                 .toList();
+    }
+
+    @Transactional
+    public StudyImportDto importStudyEntries(LocalDate from, LocalDate to) {
+        List<TimeEntryDto> entries = clockifyService.getStudyEntries(from, to);
+        int importedEntries = studyEntryService.storeEntries(entries);
+        long totalMinutes = clockifyService.getTotalStudyTime(entries).toMinutes();
+        return new StudyImportDto(from, to, importedEntries, totalMinutes);
     }
 
     private LocalDate getStartOfWeek(LocalDate date) {

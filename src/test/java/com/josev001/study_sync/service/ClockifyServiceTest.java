@@ -9,10 +9,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,11 +30,15 @@ class ClockifyServiceTest {
         TimeEntryDto inWeek = entry("2026-09-10T12:00:00Z", "PT2H30M");
         TimeEntryDto outsideWeek = entry("2026-09-14T12:00:00Z", "PT8H");
         TimeEntryDto running = entry("2026-09-11T12:00:00Z", null);
-        when(clockifyClient.getTimeEntries()).thenReturn(List.of(inWeek, outsideWeek, running));
+        when(clockifyClient.getTimeEntries(any(), any())).thenReturn(List.of(inWeek, outsideWeek, running));
 
         Duration result = new ClockifyService(clockifyClient).getTotalStudyTime(monday);
 
         assertThat(result).isEqualTo(Duration.ofHours(2).plusMinutes(30));
+        verify(clockifyClient).getTimeEntries(
+                Instant.parse("2026-09-07T03:00:00Z"),
+                Instant.parse("2026-09-14T03:00:00Z")
+        );
     }
 
     private TimeEntryDto entry(String start, String duration) {
