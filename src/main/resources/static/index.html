@@ -4,22 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Study Sync</title>
+    <link rel="icon" type="image/png" href="/assets/jose-victor-logo.png">
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
 <div class="app-layout">
     <aside class="sidebar">
         <div class="brand">
-            <span class="brand-mark">SS</span>
+            <img class="brand-logo" src="/assets/jose-victor-logo.png" alt="" width="48" height="48">
             <div><strong>Study Sync</strong><small>Seu painel de estudos</small></div>
         </div>
         <nav class="side-nav" aria-label="Navegacao principal">
-            <button class="nav-item active" type="button" data-view="overview"><span class="nav-index">01</span><span>Visao geral</span></button>
-            <button class="nav-item" type="button" data-view="analytics"><span class="nav-index">02</span><span>Analises</span></button>
-            <button class="nav-item" type="button" data-view="syncs"><span class="nav-index">03</span><span>Sincronizacoes</span></button>
-            <button class="nav-item" type="button" data-view="history"><span class="nav-index">04</span><span>Historico</span></button>
+            <button class="nav-item active" type="button" data-view="overview"><span class="icon icon-dashboard" aria-hidden="true"></span><span>Visao geral</span></button>
+            <button class="nav-item" type="button" data-view="analytics"><span class="icon icon-chart" aria-hidden="true"></span><span>Analises</span></button>
+            <button class="nav-item" type="button" data-view="syncs"><span class="icon icon-sync" aria-hidden="true"></span><span>Sincronizacoes</span></button>
+            <button class="nav-item" type="button" data-view="history"><span class="icon icon-history" aria-hidden="true"></span><span>Historico</span></button>
         </nav>
-        <button class="nav-item nav-settings" type="button" data-view="settings"><span class="nav-index">05</span><span>Configuracoes</span></button>
+        <button class="nav-item nav-settings" type="button" data-view="settings"><span class="icon icon-settings" aria-hidden="true"></span><span>Configuracoes</span></button>
         <div class="sidebar-status"><span class="status-dot"></span><span id="sidebar-connection">Verificando integracoes</span></div>
     </aside>
 
@@ -32,7 +33,7 @@
             </div>
             <div class="topbar-actions">
                 <span id="last-refresh" class="last-refresh">Atualizando...</span>
-                <button id="refresh-button" class="icon-button" type="button" title="Atualizar dados" aria-label="Atualizar dados">&#8635;</button>
+                <button id="refresh-button" class="icon-button" type="button" title="Atualizar dados" aria-label="Atualizar dados"><span class="icon icon-refresh" aria-hidden="true"></span></button>
             </div>
         </header>
 
@@ -46,7 +47,7 @@
             <label class="field-control"><span>Ate</span><input id="analytics-to" type="date"></label>
             <label class="field-control"><span>Agrupar por</span><select id="analytics-granularity"><option value="daily">Dia</option><option value="weekly">Semana</option><option value="monthly">Mes</option></select></label>
             <button id="apply-analytics-button" class="button button-secondary" type="button">Aplicar</button>
-            <button id="import-analytics-button" class="button button-primary" type="button">Importar do Clockify</button>
+            <button id="import-analytics-button" class="button button-primary" type="button"><span class="icon icon-download" aria-hidden="true"></span>Importar do Clockify</button>
         </section>
         <p id="analytics-message" class="toolbar-message">Importe um periodo para atualizar o historico detalhado.</p>
 
@@ -92,7 +93,7 @@
             <section class="view-panel" data-panel="syncs" hidden>
                 <section class="sync-panel" aria-labelledby="actions-title">
                     <div><p class="section-kicker">CLOCKIFY</p><h2 id="actions-title">Sincronizar seus estudos</h2><p id="sync-message" class="muted">Pronto para sincronizar.</p></div>
-                    <div class="action-buttons"><button id="previous-week-button" class="button button-primary" type="button">Semana anterior</button><button id="current-week-button" class="button button-secondary" type="button">Semana atual</button></div>
+                    <div class="action-buttons"><button id="previous-week-button" class="button button-primary" type="button"><span class="icon icon-sync" aria-hidden="true"></span>Semana anterior</button><button id="current-week-button" class="button button-secondary" type="button"><span class="icon icon-sync" aria-hidden="true"></span>Semana atual</button></div>
                 </section>
                 <div class="stats-grid compact-stats" aria-label="Resumo das sincronizacoes">
                     <article class="stat-card"><span class="stat-label">Horas no periodo</span><strong id="period-hours" class="stat-value">--</strong><span id="period-range" class="stat-detail">Ultimas 12 semanas</span></article>
@@ -123,7 +124,7 @@
                     <form id="settings-form" class="settings-form">
                         <label><span>Chave API do Clockify <b>*</b></span><input id="clockify-api-key" name="clockifyApiKey" type="password" autocomplete="new-password" placeholder="Obrigatoria para importar seus estudos"><small class="field-note">Usada para consultar seus registros de tempo.</small></label>
                         <label><span>Chave API do Notion <em>(opcional)</em></span><input id="notion-api-key" name="notionApiKey" type="password" autocomplete="new-password" placeholder="Deixe vazio para usar apenas localmente"><small class="field-note">A integracao atual depende do modelo do meu workspace e funciona apenas no meu ambiente.</small></label>
-                        <button id="save-settings-button" class="button button-primary" type="submit">Salvar integracoes</button>
+                        <button id="save-settings-button" class="button button-primary" type="submit"><span class="icon icon-settings" aria-hidden="true"></span>Salvar integracoes</button>
                         <p id="settings-message" class="settings-message">Preencha somente as chaves que deseja alterar.</p>
                     </form>
                 </section>
