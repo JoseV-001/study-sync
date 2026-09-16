@@ -42,32 +42,54 @@ study-sync.retry.delay-ms=30000
 
 O endpoint `/sync/week` aceita qualquer data da semana; o sistema encontra automaticamente a segunda-feira daquela semana.
 
+## Requisitos
+
+Para usar o executável no Windows, você precisa de:
+
+- Windows 10 ou superior.
+- PostgreSQL instalado e em execução.
+- Um banco chamado `study_sync`.
+- Um usuário do PostgreSQL com permissão para criar e atualizar tabelas.
+- Uma chave da API do Clockify.
+
+Java e Maven não são necessários para usar o executável portátil. Eles só são necessários para executar o código-fonte ou gerar um novo pacote.
+
+O Notion é opcional. A integração atual depende de um modelo específico de workspace e funciona no ambiente original do projeto, mas ainda não é compatível com workspaces de outras pessoas. Sem a chave do Notion, o sistema continua importando, analisando e armazenando os estudos localmente.
+
 ## Configuração
 
-Defina as credenciais antes de iniciar:
+### PostgreSQL
 
-```text
-CLOCKIFY_API_KEY=...
-NOTION_API_KEY=...
-```
-
-O projeto usa PostgreSQL para manter o resumo semanal e o histórico das sincronizações. Para subir o banco localmente com Docker:
+O projeto usa PostgreSQL para manter os estudos, o resumo semanal e o histórico das sincronizações. O serviço precisa estar iniciado antes de abrir a aplicação. Para subir o banco localmente com Docker:
 
 ```text
 docker compose up -d postgres
 ```
 
-Os valores padrão são:
+Configure a conexão com variáveis de ambiente. Os valores esperados são:
 
 ```text
 DATABASE_URL=jdbc:postgresql://localhost:5432/study_sync
 DATABASE_USERNAME=study_sync
-DATABASE_PASSWORD=study_sync
+DATABASE_PASSWORD=sua_senha_do_postgresql
 ```
 
 As tabelas são criadas e atualizadas automaticamente pelo Flyway na inicialização da aplicação.
 
-Para usar outro banco, defina `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` antes de iniciar.
+Se você usar outro endereço, banco, usuário ou senha, defina `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` antes de iniciar. A senha deve ser a senha do usuário do PostgreSQL configurado no seu computador.
+
+### Clockify e Notion
+
+Defina as credenciais antes de iniciar:
+
+```text
+CLOCKIFY_API_KEY=sua_chave_do_clockify
+NOTION_API_KEY=sua_chave_do_notion
+```
+
+`CLOCKIFY_API_KEY` é obrigatória para importar e sincronizar os estudos. `NOTION_API_KEY` pode ser deixada vazia quando você quiser usar apenas o armazenamento e os gráficos locais.
+
+Na primeira importação, o sistema também consulta os nomes de projetos, tarefas e tags do Clockify para evitar que os gráficos exibam identificadores internos.
 
 O horário automático pode ser alterado em `application.properties`:
 
@@ -77,16 +99,29 @@ study-sync.schedule.zone=America/Sao_Paulo
 study-sync.sync-on-startup=true
 ```
 
+## Como iniciar
+
+### Executável portátil no Windows
+
+1. Inicie o serviço do PostgreSQL.
+2. Configure `DATABASE_PASSWORD`, `CLOCKIFY_API_KEY` e, se necessário, `NOTION_API_KEY` nas variáveis de ambiente do Windows.
+3. Abra `dist\\StudySync\\StudySync.exe` com duplo clique.
+4. Acesse `http://localhost:8080/` quando a aplicação estiver pronta.
+
+O executável já inclui o Java e não exige Maven. Ele ainda depende do PostgreSQL local e das configurações de ambiente descritas acima.
+
+### Código-fonte
+
 Para iniciar localmente:
 
 ```text
 ./mvnw spring-boot:run
 ```
 
+No Windows, também é possível iniciar com duplo clique em `start-study-sync.bat`. O script verifica o PostgreSQL, compila o JAR na primeira execução, inicia a aplicação e abre a dashboard automaticamente.
+
 Com a aplicação iniciada, abra `http://localhost:8080/` para acessar a dashboard. Ela mostra as semanas salvas, o histórico das execuções e permite disparar manualmente a sincronização da semana atual ou anterior.
 
-No Windows, também é possível iniciar com duplo clique em `start-study-sync.bat`. O script verifica o PostgreSQL, compila o JAR na primeira execução, inicia a aplicação e abre a dashboard automaticamente. As variáveis `CLOCKIFY_API_KEY` e `NOTION_API_KEY` ainda precisam estar configuradas para que os botões de sincronização façam chamadas externas.
-
-A chave do Clockify é obrigatória para a sincronização. A integração com o Notion é opcional porque atualmente depende do modelo e da estrutura específicos do workspace usado neste projeto; ela funciona no meu ambiente, mas ainda não é compatível com workspaces de outras pessoas. Sem a chave do Notion, o sistema continua sincronizando e armazenando as horas localmente.
+Se o sistema não abrir, confira primeiro se o PostgreSQL está em execução e se `DATABASE_PASSWORD` corresponde ao usuário configurado no banco.
 
 Para gerar uma versão nativa portátil com Java incluído, execute `package-study-sync.ps1`. O executável será criado em `dist\StudySync\StudySync.exe`. Essa distribuição não exige Maven nem Java instalado no computador de destino, mas ainda utiliza o PostgreSQL local.
