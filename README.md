@@ -29,9 +29,9 @@ Para trazer os registros detalhados do Clockify para um período, use:
 POST http://localhost:8080/sync/import?from=2026-08-17&to=2026-09-15
 ```
 
-A dashboard oferece os mesmos controles, com filtros de 7, 30 e 90 dias ou intervalo personalizado. Ela mostra totais e média diária, dias ativos, dias da semana com mais e menos estudo, horário de maior foco, matérias mais estudadas e gráficos por dia, semana, mês, horário, dia da semana e matéria. A importação solicita todos os registros do período ao Clockify, inclusive quando há mais de uma página de resultados.
+A dashboard oferece os mesmos controles, com filtros de 7, 30 e 90 dias ou intervalo personalizado. Ela mostra totais e média diária, dias ativos, dias da semana com mais e menos estudo, horário de maior foco, matérias e tópicos mais estudados e gráficos por dia, semana, mês, horário, dia da semana e matéria. A importação solicita todos os registros do período ao Clockify, inclusive quando há mais de uma página de resultados.
 
-Para montar a matéria, o sistema usa a descrição do lançamento do Clockify. Quando ela estiver vazia, o projeto é usado como identificação alternativa.
+Para identificar a matéria, o sistema resolve os nomes reais do Clockify e usa, nesta ordem: tópico (tarefa), tags, descrição e projeto. Identificadores internos não são exibidos. Reimporte um período já salvo para atualizar os registros antigos com os nomes resolvidos.
 
 As sincronizações tentam novamente em caso de erro. O padrão é de 3 tentativas, com intervalo de 30 segundos, configurável em `application.properties`:
 

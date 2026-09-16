@@ -1,5 +1,6 @@
 package com.josev001.study_sync.service;
 
+import com.josev001.study_sync.dto.ClockifyEntryMetadataDto;
 import com.josev001.study_sync.dto.TimeEntryDto;
 import com.josev001.study_sync.persistence.StudyEntry;
 import com.josev001.study_sync.persistence.StudyEntryRepository;
@@ -18,13 +19,19 @@ public class StudyEntryService {
     private static final ZoneId APP_ZONE = ZoneId.of("America/Sao_Paulo");
 
     private final StudyEntryRepository studyEntryRepository;
+    private final ClockifyMetadataService clockifyMetadataService;
 
-    public StudyEntryService(StudyEntryRepository studyEntryRepository) {
+    public StudyEntryService(
+            StudyEntryRepository studyEntryRepository,
+            ClockifyMetadataService clockifyMetadataService
+    ) {
         this.studyEntryRepository = studyEntryRepository;
+        this.clockifyMetadataService = clockifyMetadataService;
     }
 
     @Transactional
     public int storeEntries(List<TimeEntryDto> entries) {
+        clockifyMetadataService.clearCache();
         Instant syncedAt = Instant.now();
         int storedEntries = 0;
 
@@ -37,13 +44,20 @@ public class StudyEntryService {
             Instant endedAt = Instant.parse(entry.timeInterval().end());
             long durationMinutes = Duration.parse(entry.timeInterval().duration()).toMinutes();
             LocalDate recordedDate = startedAt.atZone(APP_ZONE).toLocalDate();
-            String subject = getSubject(entry);
+            ClockifyEntryMetadataDto metadata = clockifyMetadataService.resolve(entry);
+            String tagIds = join(entry.tagIds());
+            String tagNames = join(metadata.tagNames());
+            String subject = getSubject(entry, metadata);
 
             studyEntryRepository.findById(entry.id())
                     .ifPresentOrElse(
                             storedEntry -> storedEntry.update(
                                     entry.projectId(),
                                     entry.taskId(),
+                                    metadata.projectName(),
+                                    metadata.topicName(),
+                                    tagIds,
+                                    tagNames,
                                     entry.description(),
                                     subject,
                                     startedAt,
@@ -56,6 +70,10 @@ public class StudyEntryService {
                                     entry.id(),
                                     entry.projectId(),
                                     entry.taskId(),
+                                    metadata.projectName(),
+                                    metadata.topicName(),
+                                    tagIds,
+                                    tagNames,
                                     entry.description(),
                                     subject,
                                     startedAt,
@@ -86,13 +104,32 @@ public class StudyEntryService {
                 && entry.timeInterval().duration() != null;
     }
 
-    private String getSubject(TimeEntryDto entry) {
-        if (entry.description() != null && !entry.description().isBlank()) {
-            return entry.description().trim();
+    private String getSubject(TimeEntryDto entry, ClockifyEntryMetadataDto metadata) {
+        if (hasText(metadata.topicName())) {
+            return limit(metadata.topicName());
         }
-        if (entry.projectId() != null && !entry.projectId().isBlank()) {
-            return "Projeto " + entry.projectId();
+        if (metadata.tagNames() != null && !metadata.tagNames().isEmpty()) {
+            return limit(String.join(" + ", metadata.tagNames()));
+        }
+        if (hasText(entry.description())) {
+            return limit(entry.description());
+        }
+        if (hasText(metadata.projectName())) {
+            return limit(metadata.projectName());
         }
         return "Sem materia";
+    }
+
+    private String join(List<String> values) {
+        return values == null ? null : String.join(", ", values);
+    }
+
+    private String limit(String value) {
+        String trimmed = value.trim();
+        return trimmed.length() <= 256 ? trimmed : trimmed.substring(0, 256);
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }

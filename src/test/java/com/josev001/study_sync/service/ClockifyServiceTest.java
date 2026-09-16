@@ -48,6 +48,7 @@ class ClockifyServiceTest {
                 "user",
                 "project",
                 "task",
+                List.of("tag"),
                 new TimeIntervalDto(start, start, duration)
         );
     }

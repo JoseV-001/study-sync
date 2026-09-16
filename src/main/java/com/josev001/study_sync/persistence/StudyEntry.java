@@ -22,6 +22,18 @@ public class StudyEntry {
     @Column(name = "task_id", length = 64)
     private String taskId;
 
+    @Column(name = "project_name", length = 512)
+    private String projectName;
+
+    @Column(name = "topic_name", length = 512)
+    private String topicName;
+
+    @Column(name = "tag_ids", length = 2000)
+    private String tagIds;
+
+    @Column(name = "tag_names", length = 2000)
+    private String tagNames;
+
     @Column(length = 2000)
     private String description;
 
@@ -50,6 +62,10 @@ public class StudyEntry {
             String clockifyEntryId,
             String projectId,
             String taskId,
+            String projectName,
+            String topicName,
+            String tagIds,
+            String tagNames,
             String description,
             String subject,
             Instant startedAt,
@@ -61,6 +77,10 @@ public class StudyEntry {
         this.clockifyEntryId = clockifyEntryId;
         this.projectId = projectId;
         this.taskId = taskId;
+        this.projectName = projectName;
+        this.topicName = topicName;
+        this.tagIds = tagIds;
+        this.tagNames = tagNames;
         this.description = description;
         this.subject = subject;
         this.startedAt = startedAt;
@@ -70,7 +90,8 @@ public class StudyEntry {
         this.syncedAt = syncedAt;
     }
 
-    public void update(
+    public StudyEntry(
+            String clockifyEntryId,
             String projectId,
             String taskId,
             String description,
@@ -81,8 +102,45 @@ public class StudyEntry {
             LocalDate recordedDate,
             Instant syncedAt
     ) {
+        this(
+                clockifyEntryId,
+                projectId,
+                taskId,
+                null,
+                null,
+                null,
+                null,
+                description,
+                subject,
+                startedAt,
+                endedAt,
+                durationMinutes,
+                recordedDate,
+                syncedAt
+        );
+    }
+
+    public void update(
+            String projectId,
+            String taskId,
+            String projectName,
+            String topicName,
+            String tagIds,
+            String tagNames,
+            String description,
+            String subject,
+            Instant startedAt,
+            Instant endedAt,
+            long durationMinutes,
+            LocalDate recordedDate,
+            Instant syncedAt
+    ) {
         this.projectId = projectId;
         this.taskId = taskId;
+        this.projectName = projectName;
+        this.topicName = topicName;
+        this.tagIds = tagIds;
+        this.tagNames = tagNames;
         this.description = description;
         this.subject = subject;
         this.startedAt = startedAt;
@@ -94,6 +152,18 @@ public class StudyEntry {
 
     public String getSubject() {
         return subject;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public String getTopicName() {
+        return topicName;
+    }
+
+    public String getTagNames() {
+        return tagNames;
     }
 
     public Instant getStartedAt() {

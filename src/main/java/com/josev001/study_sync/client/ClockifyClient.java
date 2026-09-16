@@ -1,6 +1,7 @@
 package com.josev001.study_sync.client;
 
 import com.josev001.study_sync.config.ClockifyProperties;
+import com.josev001.study_sync.dto.ClockifyNamedEntityDto;
 import com.josev001.study_sync.dto.TimeEntryDto;
 import com.josev001.study_sync.service.IntegrationSettingsService;
 import org.springframework.core.ParameterizedTypeReference;
@@ -73,6 +74,35 @@ public class ClockifyClient {
         }
 
         return entries;
+    }
+
+    public ClockifyNamedEntityDto getProject(String projectId) {
+        return restClient.get()
+                .uri("/workspaces/{workspaceId}/projects/{projectId}", properties.getWorkspaceId(), projectId)
+                .header("X-Api-Key", getApiKey())
+                .retrieve()
+                .body(ClockifyNamedEntityDto.class);
+    }
+
+    public ClockifyNamedEntityDto getTask(String projectId, String taskId) {
+        return restClient.get()
+                .uri(
+                        "/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}",
+                        properties.getWorkspaceId(),
+                        projectId,
+                        taskId
+                )
+                .header("X-Api-Key", getApiKey())
+                .retrieve()
+                .body(ClockifyNamedEntityDto.class);
+    }
+
+    public ClockifyNamedEntityDto getTag(String tagId) {
+        return restClient.get()
+                .uri("/workspaces/{workspaceId}/tags/{tagId}", properties.getWorkspaceId(), tagId)
+                .header("X-Api-Key", getApiKey())
+                .retrieve()
+                .body(ClockifyNamedEntityDto.class);
     }
 
     private String getApiKey() {
