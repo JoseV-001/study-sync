@@ -26,6 +26,7 @@
 [hidden] { display: none !important; }
 body { margin: 0; min-width: 320px; background: var(--canvas); color: var(--ink); font-family: "Poppins", ui-sans-serif, system-ui, sans-serif; line-height: 1.5; }
 button, input, select { font: inherit; }
+a { color: inherit; text-decoration: none; }
 button { letter-spacing: 0; }
 h1, h2, h3, p { margin-top: 0; }
 h1 { margin-bottom: 2px; font-size: 1.75rem; letter-spacing: 0; }
@@ -64,6 +65,7 @@ h2 { margin-bottom: 0; font-size: 1.08rem; letter-spacing: 0; }
 .icon-settings { mask-image: url('/assets/icons/settings.svg'); -webkit-mask-image: url('/assets/icons/settings.svg'); }
 .icon-refresh { mask-image: url('/assets/icons/refresh-cw.svg'); -webkit-mask-image: url('/assets/icons/refresh-cw.svg'); }
 .icon-download { mask-image: url('/assets/icons/cloud-download.svg'); -webkit-mask-image: url('/assets/icons/cloud-download.svg'); }
+.icon-github { mask-image: url('/assets/icons/github.svg'); -webkit-mask-image: url('/assets/icons/github.svg'); }
 
 .analytics-toolbar { display: flex; max-width: 1320px; margin: 0 auto; padding: 14px 16px; align-items: end; gap: 10px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
 .analytics-toolbar.is-hidden, .toolbar-message.is-hidden { display: none; }
