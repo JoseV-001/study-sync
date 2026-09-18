@@ -7,6 +7,8 @@ import com.josev001.study_sync.dto.IntegrationSettingsDto;
 import com.josev001.study_sync.dto.IntegrationSettingsRequest;
 import com.josev001.study_sync.dto.StudyAnalyticsDto;
 import com.josev001.study_sync.dto.StudyImportDto;
+import com.josev001.study_sync.dto.ClockifyConnectionDto;
+import com.josev001.study_sync.client.ClockifyClient;
 import com.josev001.study_sync.service.IntegrationSettingsService;
 import com.josev001.study_sync.service.StudyAnalyticsService;
 import com.josev001.study_sync.service.StudySyncService;
@@ -19,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.time.DayOfWeek;
@@ -32,15 +36,18 @@ public class StudySyncController {
     private final StudySyncService studySyncService;
     private final IntegrationSettingsService settingsService;
     private final StudyAnalyticsService studyAnalyticsService;
+    private final ClockifyClient clockifyClient;
 
     public StudySyncController(
             StudySyncService studySyncService,
             IntegrationSettingsService settingsService,
-            StudyAnalyticsService studyAnalyticsService
+            StudyAnalyticsService studyAnalyticsService,
+            ClockifyClient clockifyClient
     ) {
         this.studySyncService = studySyncService;
         this.settingsService = settingsService;
         this.studyAnalyticsService = studyAnalyticsService;
+        this.clockifyClient = clockifyClient;
     }
 
     @PostMapping("/current-week")
@@ -94,6 +101,17 @@ public class StudySyncController {
             @Valid @RequestBody IntegrationSettingsRequest request
     ) {
         return settingsService.saveSettings(request);
+    }
+
+    @PostMapping("/settings/test-clockify")
+    public ResponseEntity<ClockifyConnectionDto> testClockifyConnection() {
+        try {
+            clockifyClient.getUser();
+            return ResponseEntity.ok(new ClockifyConnectionDto(true, "Conexao com o Clockify validada."));
+        } catch (RuntimeException exception) {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body(new ClockifyConnectionDto(false, "Nao foi possivel validar a chave do Clockify."));
+        }
     }
 
     @PostMapping("/import")

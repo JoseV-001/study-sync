@@ -21,6 +21,8 @@ const elements = {
     applyAnalyticsButton: document.querySelector('#apply-analytics-button'),
     averageHours: document.querySelector('#average-hours'),
     clockifyApiKey: document.querySelector('#clockify-api-key'),
+    clockifyTestMessage: document.querySelector('#clockify-test-message'),
+    testClockifyButton: document.querySelector('#test-clockify-button'),
     currentWeekButton: document.querySelector('#current-week-button'),
     historyState: document.querySelector('#history-state'),
     historyTableBody: document.querySelector('#history-table-body'),
@@ -40,6 +42,7 @@ const elements = {
     settingsForm: document.querySelector('#settings-form'),
     settingsMessage: document.querySelector('#settings-message'),
     settingsState: document.querySelector('#settings-state'),
+    setupGuide: document.querySelector('#setup-guide'),
     sidebarConnection: document.querySelector('#sidebar-connection'),
     subjectChart: document.querySelector('#subject-chart'),
     syncMessage: document.querySelector('#sync-message'),
@@ -119,6 +122,8 @@ function renderSettings(settings) {
     const notion = settings.notionConfigured ? 'Notion configurado' : 'Notion opcional';
     elements.settingsState.textContent = `${clockify} - ${notion}`;
     elements.sidebarConnection.textContent = settings.clockifyConfigured ? 'Clockify conectado' : 'Configuracao pendente';
+    elements.setupGuide.hidden = settings.clockifyConfigured;
+    elements.testClockifyButton.disabled = !settings.clockifyConfigured;
 }
 
 function renderWeeks() {
@@ -331,11 +336,30 @@ async function saveSettings(event) {
         elements.clockifyApiKey.value = '';
         elements.notionApiKey.value = '';
         elements.settingsMessage.textContent = 'Integracoes salvas com sucesso.';
+        elements.clockifyTestMessage.textContent = '';
     } catch (error) {
         elements.settingsMessage.textContent = error.message;
         elements.settingsMessage.className = 'muted settings-message error-text';
     } finally {
         elements.saveSettingsButton.disabled = false;
+    }
+}
+
+async function testClockifyConnection() {
+    elements.testClockifyButton.disabled = true;
+    elements.clockifyTestMessage.textContent = 'Validando conexao com o Clockify...';
+    elements.clockifyTestMessage.className = 'muted settings-message';
+    try {
+        const response = await fetch('/sync/settings/test-clockify', { method: 'POST' });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Nao foi possivel validar a conexao.');
+        elements.clockifyTestMessage.textContent = result.message;
+        elements.clockifyTestMessage.className = 'muted settings-message success-text';
+    } catch (error) {
+        elements.clockifyTestMessage.textContent = error.message;
+        elements.clockifyTestMessage.className = 'muted settings-message error-text';
+    } finally {
+        elements.testClockifyButton.disabled = false;
     }
 }
 
@@ -392,6 +416,7 @@ initializeAnalyticsFilters();
 document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => switchView(button.dataset.view)));
 elements.refreshButton.addEventListener('click', loadDashboard);
 elements.settingsForm.addEventListener('submit', saveSettings);
+elements.testClockifyButton.addEventListener('click', testClockifyConnection);
 elements.applyAnalyticsButton.addEventListener('click', loadDashboard);
 elements.analyticsGranularity.addEventListener('change', () => state.analytics && renderAnalytics(state.analytics));
 elements.importAnalyticsButton.addEventListener('click', importAnalyticsPeriod);

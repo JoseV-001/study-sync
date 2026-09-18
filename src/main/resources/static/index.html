@@ -54,6 +54,19 @@
 
         <main>
             <section class="view-panel" data-panel="overview">
+                <section id="setup-guide" class="setup-guide" aria-labelledby="setup-guide-title" hidden>
+                    <div class="setup-guide-copy">
+                        <p class="section-kicker">PRIMEIROS PASSOS</p>
+                        <h2 id="setup-guide-title">Configure o Study Sync</h2>
+                        <p>Conecte sua chave do Clockify para importar seus estudos e liberar os indicadores da dashboard.</p>
+                    </div>
+                    <div class="setup-steps">
+                        <div class="setup-step"><span class="setup-step-number">1</span><span><strong>Adicione sua chave</strong><small>Abra Configuracoes e salve a API do Clockify.</small></span></div>
+                        <div class="setup-step"><span class="setup-step-number">2</span><span><strong>Teste a conexao</strong><small>Confirme se o Study Sync consegue acessar seus registros.</small></span></div>
+                        <div class="setup-step"><span class="setup-step-number">3</span><span><strong>Importe seus estudos</strong><small>Escolha um periodo e acompanhe seus indicadores.</small></span></div>
+                    </div>
+                    <button class="button button-primary" type="button" data-view="settings"><span class="icon icon-settings" aria-hidden="true"></span>Configurar agora</button>
+                </section>
                 <div class="stats-grid analytics-stats" aria-label="Resumo do periodo analisado">
                     <article class="stat-card stat-card-accent"><span class="stat-label">Total estudado</span><strong id="analytics-total" class="stat-value">--</strong><span id="analytics-range" class="stat-detail">--</span></article>
                     <article class="stat-card"><span class="stat-label">Media por dia</span><strong id="analytics-average" class="stat-value">--</strong><span class="stat-detail">Inclui dias sem estudo</span></article>
@@ -125,8 +138,9 @@
                     <form id="settings-form" class="settings-form">
                         <label><span>Chave API do Clockify <b>*</b></span><input id="clockify-api-key" name="clockifyApiKey" type="password" autocomplete="new-password" placeholder="Obrigatoria para importar seus estudos"><small class="field-note">Usada para consultar seus registros de tempo.</small></label>
                         <label><span>Chave API do Notion <em>(opcional)</em></span><input id="notion-api-key" name="notionApiKey" type="password" autocomplete="new-password" placeholder="Deixe vazio para usar apenas localmente"><small class="field-note">A integracao atual depende do modelo do meu workspace e funciona apenas no meu ambiente.</small></label>
-                        <button id="save-settings-button" class="button button-primary" type="submit"><span class="icon icon-settings" aria-hidden="true"></span>Salvar integracoes</button>
+                        <div class="settings-actions"><button id="save-settings-button" class="button button-primary" type="submit"><span class="icon icon-settings" aria-hidden="true"></span>Salvar integracoes</button><button id="test-clockify-button" class="button button-secondary" type="button"><span class="icon icon-refresh" aria-hidden="true"></span>Testar Clockify</button></div>
                         <p id="settings-message" class="settings-message">Preencha somente as chaves que deseja alterar.</p>
+                        <p id="clockify-test-message" class="settings-message" aria-live="polite"></p>
                     </form>
                 </section>
             </section>
