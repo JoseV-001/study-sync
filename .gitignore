@@ -36,3 +36,4 @@ build/
 
 # Local launcher credentials
 .study-sync.local.ps1
+application-local.properties
