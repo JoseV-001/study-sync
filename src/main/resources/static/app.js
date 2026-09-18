@@ -365,14 +365,17 @@ async function testClockifyConnection() {
 
 async function importAnalyticsPeriod() {
     elements.importAnalyticsButton.disabled = true;
-    elements.analyticsMessage.textContent = 'Importando registros do Clockify...';
+    const startedAt = performance.now();
+    elements.analyticsMessage.textContent = 'Consultando registros do Clockify...';
     elements.analyticsMessage.classList.remove('error-text');
     try {
         const params = new URLSearchParams({ from: elements.analyticsFrom.value, to: elements.analyticsTo.value });
         const response = await fetch(`/sync/import?${params}`, { method: 'POST' });
-        if (!response.ok) throw new Error('Nao foi possivel importar o periodo. Verifique a chave do Clockify.');
         const result = await response.json();
-        elements.analyticsMessage.textContent = `${result.importedEntries} registro${result.importedEntries === 1 ? '' : 's'} importado${result.importedEntries === 1 ? '' : 's'}: ${formatMinutes(result.totalMinutes)}.`;
+        if (!response.ok) throw new Error(result.message || 'Nao foi possivel importar o periodo.');
+        const elapsedSeconds = Math.max(1, Math.round((performance.now() - startedAt) / 1000));
+        const processed = result.processedEntries;
+        elements.analyticsMessage.textContent = `${processed} registro${processed === 1 ? '' : 's'} processado${processed === 1 ? '' : 's'} em ${elapsedSeconds}s: ${result.createdEntries} novo${result.createdEntries === 1 ? '' : 's'}, ${result.updatedEntries} atualizado${result.updatedEntries === 1 ? '' : 's'} e ${result.skippedEntries} ignorado${result.skippedEntries === 1 ? '' : 's'}. Total: ${formatMinutes(result.totalMinutes)}.`;
         await loadDashboard();
     } catch (error) {
         elements.analyticsMessage.textContent = error.message;

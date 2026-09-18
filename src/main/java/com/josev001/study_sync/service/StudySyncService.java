@@ -5,6 +5,7 @@ import com.josev001.study_sync.dto.SyncHistoryDto;
 import com.josev001.study_sync.dto.WeeklyStudyDto;
 import com.josev001.study_sync.dto.StudyImportDto;
 import com.josev001.study_sync.dto.TimeEntryDto;
+import com.josev001.study_sync.dto.StudyEntryStoreResult;
 import com.josev001.study_sync.persistence.SyncRun;
 import com.josev001.study_sync.persistence.SyncRunRepository;
 import com.josev001.study_sync.persistence.WeeklyStudy;
@@ -173,9 +174,16 @@ public class StudySyncService {
     @Transactional
     public StudyImportDto importStudyEntries(LocalDate from, LocalDate to) {
         List<TimeEntryDto> entries = clockifyService.getStudyEntries(from, to);
-        int importedEntries = studyEntryService.storeEntries(entries);
+        StudyEntryStoreResult result = studyEntryService.storeEntriesDetailed(entries);
         long totalMinutes = clockifyService.getTotalStudyTime(entries).toMinutes();
-        return new StudyImportDto(from, to, importedEntries, totalMinutes);
+        return new StudyImportDto(
+                from,
+                to,
+                result.createdEntries(),
+                result.updatedEntries(),
+                result.skippedEntries(),
+                totalMinutes
+        );
     }
 
     private LocalDate getStartOfWeek(LocalDate date) {

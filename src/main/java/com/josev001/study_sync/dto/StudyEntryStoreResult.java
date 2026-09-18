@@ -1,14 +1,9 @@
 package com.josev001.study_sync.dto;
 
-import java.time.LocalDate;
-
-public record StudyImportDto(
-        LocalDate from,
-        LocalDate to,
+public record StudyEntryStoreResult(
         int createdEntries,
         int updatedEntries,
-        int skippedEntries,
-        long totalMinutes
+        int skippedEntries
 ) {
     public int processedEntries() {
         return createdEntries + updatedEntries;

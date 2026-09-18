@@ -8,6 +8,7 @@ import com.josev001.study_sync.dto.IntegrationSettingsRequest;
 import com.josev001.study_sync.dto.StudyAnalyticsDto;
 import com.josev001.study_sync.dto.StudyImportDto;
 import com.josev001.study_sync.dto.ClockifyConnectionDto;
+import com.josev001.study_sync.dto.ApiErrorDto;
 import com.josev001.study_sync.client.ClockifyClient;
 import com.josev001.study_sync.service.IntegrationSettingsService;
 import com.josev001.study_sync.service.StudyAnalyticsService;
@@ -115,7 +116,7 @@ public class StudySyncController {
     }
 
     @PostMapping("/import")
-    public StudyImportDto importStudyEntries(
+    public ResponseEntity<?> importStudyEntries(
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate from,
@@ -123,7 +124,11 @@ public class StudySyncController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate to
     ) {
-        return studySyncService.importStudyEntries(from, to);
+        try {
+            return ResponseEntity.ok(studySyncService.importStudyEntries(from, to));
+        } catch (IllegalStateException exception) {
+            return ResponseEntity.badRequest().body(new ApiErrorDto(exception.getMessage()));
+        }
     }
 
     @GetMapping("/analytics")

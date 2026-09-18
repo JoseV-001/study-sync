@@ -41,6 +41,17 @@ class ClockifyServiceTest {
         );
     }
 
+    @Test
+    void removesDuplicatedClockifyEntriesBeforeProcessing() {
+        TimeEntryDto duplicated = entry("2026-09-10T12:00:00Z", "PT2H");
+        when(clockifyClient.getTimeEntries(any(), any())).thenReturn(List.of(duplicated, duplicated));
+
+        List<TimeEntryDto> result = new ClockifyService(clockifyClient)
+                .getStudyEntries(LocalDate.of(2026, 9, 7), LocalDate.of(2026, 9, 13));
+
+        assertThat(result).hasSize(1);
+    }
+
     private TimeEntryDto entry(String start, String duration) {
         return new TimeEntryDto(
                 "id",

@@ -1,6 +1,7 @@
 package com.josev001.study_sync.service;
 
 import com.josev001.study_sync.dto.ClockifyEntryMetadataDto;
+import com.josev001.study_sync.dto.StudyEntryStoreResult;
 import com.josev001.study_sync.dto.TimeEntryDto;
 import com.josev001.study_sync.persistence.StudyEntry;
 import com.josev001.study_sync.persistence.StudyEntryRepository;
@@ -12,6 +13,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class StudyEntryService {
@@ -31,12 +33,20 @@ public class StudyEntryService {
 
     @Transactional
     public int storeEntries(List<TimeEntryDto> entries) {
+        return storeEntriesDetailed(entries).processedEntries();
+    }
+
+    @Transactional
+    public StudyEntryStoreResult storeEntriesDetailed(List<TimeEntryDto> entries) {
         clockifyMetadataService.clearCache();
         Instant syncedAt = Instant.now();
-        int storedEntries = 0;
+        int createdEntries = 0;
+        int updatedEntries = 0;
+        int skippedEntries = 0;
 
         for (TimeEntryDto entry : entries) {
             if (!isCompletedEntry(entry)) {
+                skippedEntries++;
                 continue;
             }
 
@@ -49,9 +59,10 @@ public class StudyEntryService {
             String tagNames = join(metadata.tagNames());
             String subject = getSubject(entry, metadata);
 
-            studyEntryRepository.findById(entry.id())
-                    .ifPresentOrElse(
-                            storedEntry -> storedEntry.update(
+            Optional<StudyEntry> existingEntry = studyEntryRepository.findById(entry.id());
+            if (existingEntry.isPresent()) {
+                StudyEntry storedEntry = existingEntry.get();
+                storedEntry.update(
                                     entry.projectId(),
                                     entry.taskId(),
                                     metadata.projectName(),
@@ -65,8 +76,10 @@ public class StudyEntryService {
                                     durationMinutes,
                                     recordedDate,
                                     syncedAt
-                            ),
-                            () -> studyEntryRepository.save(new StudyEntry(
+                );
+                updatedEntries++;
+            } else {
+                studyEntryRepository.save(new StudyEntry(
                                     entry.id(),
                                     entry.projectId(),
                                     entry.taskId(),
@@ -81,12 +94,12 @@ public class StudyEntryService {
                                     durationMinutes,
                                     recordedDate,
                                     syncedAt
-                            ))
-                    );
-            storedEntries++;
+                ));
+                createdEntries++;
+            }
         }
 
-        return storedEntries;
+        return new StudyEntryStoreResult(createdEntries, updatedEntries, skippedEntries);
     }
 
     public List<StudyEntry> getEntriesBetween(LocalDate from, LocalDate to) {
