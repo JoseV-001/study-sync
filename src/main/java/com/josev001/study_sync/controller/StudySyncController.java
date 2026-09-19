@@ -8,12 +8,14 @@ import com.josev001.study_sync.dto.IntegrationSettingsRequest;
 import com.josev001.study_sync.dto.StudyAnalyticsDto;
 import com.josev001.study_sync.dto.StudyImportDto;
 import com.josev001.study_sync.dto.ClockifyConnectionDto;
+import com.josev001.study_sync.dto.ClockifySetupRequest;
 import com.josev001.study_sync.dto.ApiErrorDto;
 import com.josev001.study_sync.dto.StudyGoalDto;
 import com.josev001.study_sync.dto.StudyGoalProgressDto;
 import com.josev001.study_sync.dto.StudyGoalRequest;
 import com.josev001.study_sync.dto.SubjectGoalProgressDto;
 import com.josev001.study_sync.dto.SubjectGoalRequest;
+import com.josev001.study_sync.dto.UserResponse;
 import com.josev001.study_sync.client.ClockifyClient;
 import com.josev001.study_sync.service.IntegrationSettingsService;
 import com.josev001.study_sync.service.StudyAnalyticsService;
@@ -113,10 +115,28 @@ public class StudySyncController {
     }
 
     @PutMapping("/settings")
-    public IntegrationSettingsDto saveSettings(
-            @Valid @RequestBody IntegrationSettingsRequest request
+    public ResponseEntity<?> saveSettings(
+            @RequestBody IntegrationSettingsRequest request
     ) {
-        return settingsService.saveSettings(request);
+        try {
+            if (hasText(request.clockifyApiKey())) {
+                saveClockifyConnection(request.clockifyApiKey());
+            }
+            return ResponseEntity.ok(settingsService.saveSettings(request));
+        } catch (RuntimeException exception) {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body(new ApiErrorDto("Nao foi possivel atualizar o Clockify. Confira a chave e tente novamente."));
+        }
+    }
+
+    @PostMapping("/settings/connect-clockify")
+    public ResponseEntity<?> connectClockify(@Valid @RequestBody ClockifySetupRequest request) {
+        try {
+            return ResponseEntity.ok(saveClockifyConnection(request.apiKey()));
+        } catch (RuntimeException exception) {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body(new ApiErrorDto("Nao foi possivel conectar ao Clockify. Confira a chave e tente novamente."));
+        }
     }
 
     @PostMapping("/settings/test-clockify")
@@ -128,6 +148,15 @@ public class StudySyncController {
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                     .body(new ClockifyConnectionDto(false, "Nao foi possivel validar a chave do Clockify."));
         }
+    }
+
+    private IntegrationSettingsDto saveClockifyConnection(String apiKey) {
+        UserResponse user = clockifyClient.getUser(apiKey);
+        return settingsService.saveClockifyConnection(apiKey, user);
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 
     @GetMapping("/goals")

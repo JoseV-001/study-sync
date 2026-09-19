@@ -4,6 +4,7 @@ import com.josev001.study_sync.config.ClockifyProperties;
 import com.josev001.study_sync.config.NotionProperties;
 import com.josev001.study_sync.dto.IntegrationSettingsDto;
 import com.josev001.study_sync.dto.IntegrationSettingsRequest;
+import com.josev001.study_sync.dto.UserResponse;
 import com.josev001.study_sync.persistence.AppSetting;
 import com.josev001.study_sync.persistence.AppSettingRepository;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,8 @@ import java.time.Instant;
 public class IntegrationSettingsService {
 
     private static final String CLOCKIFY_API_KEY = "clockify.api-key";
+    private static final String CLOCKIFY_USER_ID = "clockify.user-id";
+    private static final String CLOCKIFY_WORKSPACE_ID = "clockify.workspace-id";
     private static final String NOTION_API_KEY = "notion.api-key";
 
     private final AppSettingRepository appSettingRepository;
@@ -45,22 +48,48 @@ public class IntegrationSettingsService {
                 .orElse(notionProperties.getApiKey());
     }
 
+    public String getClockifyUserId() {
+        return getSettingValue(CLOCKIFY_USER_ID, clockifyProperties.getUserId());
+    }
+
+    public String getClockifyWorkspaceId() {
+        return getSettingValue(CLOCKIFY_WORKSPACE_ID, clockifyProperties.getWorkspaceId());
+    }
+
     public IntegrationSettingsDto getSettings() {
         return new IntegrationSettingsDto(
-                hasText(getClockifyApiKey()),
+                hasText(getClockifyApiKey())
+                        && hasText(getClockifyUserId())
+                        && hasText(getClockifyWorkspaceId()),
                 hasText(getNotionApiKey())
         );
     }
 
     @Transactional
     public IntegrationSettingsDto saveSettings(IntegrationSettingsRequest request) {
-        saveSetting(CLOCKIFY_API_KEY, request.clockifyApiKey());
         if (hasText(request.notionApiKey())) {
             saveSetting(NOTION_API_KEY, request.notionApiKey());
-        } else {
-            appSettingRepository.deleteById(NOTION_API_KEY);
         }
         return getSettings();
+    }
+
+    @Transactional
+    public IntegrationSettingsDto saveClockifyConnection(String apiKey, UserResponse user) {
+        if (!hasText(apiKey) || user == null || !hasText(user.getId()) || !hasText(user.getActiveWorkspace())) {
+            throw new IllegalArgumentException("Clockify connection did not return a user and workspace");
+        }
+
+        saveSetting(CLOCKIFY_API_KEY, apiKey);
+        saveSetting(CLOCKIFY_USER_ID, user.getId());
+        saveSetting(CLOCKIFY_WORKSPACE_ID, user.getActiveWorkspace());
+        return getSettings();
+    }
+
+    private String getSettingValue(String key, String fallback) {
+        return appSettingRepository.findById(key)
+                .map(AppSetting::getValue)
+                .filter(this::hasText)
+                .orElse(fallback);
     }
 
     private void saveSetting(String key, String value) {

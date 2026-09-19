@@ -1,8 +1,8 @@
 package com.josev001.study_sync.client;
 
-import com.josev001.study_sync.config.ClockifyProperties;
 import com.josev001.study_sync.dto.ClockifyNamedEntityDto;
 import com.josev001.study_sync.dto.TimeEntryDto;
+import com.josev001.study_sync.dto.UserResponse;
 import com.josev001.study_sync.service.IntegrationSettingsService;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
@@ -24,26 +24,27 @@ public class ClockifyClient {
             new ParameterizedTypeReference<>() {};
 
     private final RestClient restClient;
-    private final ClockifyProperties properties;
     private final IntegrationSettingsService settingsService;
 
 
     public ClockifyClient(
             @Qualifier("clockifyRestClient") RestClient restClient,
-            ClockifyProperties properties,
             IntegrationSettingsService settingsService
     ) {
         this.restClient = restClient;
-        this.properties = properties;
         this.settingsService = settingsService;
     }
 
-    public String getUser() {
+    public UserResponse getUser() {
+        return getUser(getApiKey());
+    }
+
+    public UserResponse getUser(String apiKey) {
         return restClient.get()
                 .uri("/user")
-                .header("X-Api-Key", getApiKey())
+                .header("X-Api-Key", apiKey)
                 .retrieve()
-                .body(String.class);
+                .body(UserResponse.class);
     }
 
     public List<TimeEntryDto> getTimeEntries(Instant start, Instant end) {
@@ -58,7 +59,7 @@ public class ClockifyClient {
                             .queryParam("end", end)
                             .queryParam("page", currentPage)
                             .queryParam("page-size", PAGE_SIZE)
-                            .build(properties.getWorkspaceId(), properties.getUserId()))
+                            .build(settingsService.getClockifyWorkspaceId(), settingsService.getClockifyUserId()))
                     .header("X-Api-Key", getApiKey())
                     .retrieve()
                     .body(TIME_ENTRIES_TYPE);
@@ -78,7 +79,7 @@ public class ClockifyClient {
 
     public ClockifyNamedEntityDto getProject(String projectId) {
         return restClient.get()
-                .uri("/workspaces/{workspaceId}/projects/{projectId}", properties.getWorkspaceId(), projectId)
+                .uri("/workspaces/{workspaceId}/projects/{projectId}", settingsService.getClockifyWorkspaceId(), projectId)
                 .header("X-Api-Key", getApiKey())
                 .retrieve()
                 .body(ClockifyNamedEntityDto.class);
@@ -88,7 +89,7 @@ public class ClockifyClient {
         return restClient.get()
                 .uri(
                         "/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}",
-                        properties.getWorkspaceId(),
+                        settingsService.getClockifyWorkspaceId(),
                         projectId,
                         taskId
                 )
@@ -99,7 +100,7 @@ public class ClockifyClient {
 
     public ClockifyNamedEntityDto getTag(String tagId) {
         return restClient.get()
-                .uri("/workspaces/{workspaceId}/tags/{tagId}", properties.getWorkspaceId(), tagId)
+                .uri("/workspaces/{workspaceId}/tags/{tagId}", settingsService.getClockifyWorkspaceId(), tagId)
                 .header("X-Api-Key", getApiKey())
                 .retrieve()
                 .body(ClockifyNamedEntityDto.class);

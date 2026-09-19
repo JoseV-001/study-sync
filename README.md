@@ -50,7 +50,7 @@ Para usar o executável no Windows, você precisa de:
 - PostgreSQL instalado e em execução.
 - Um banco chamado `study_sync`.
 - Um usuário do PostgreSQL com permissão para criar e atualizar tabelas.
-- Uma chave da API do Clockify.
+- Uma chave da API do Clockify para concluir a configuracao inicial.
 
 Java e Maven não são necessários para usar o executável portátil. Eles só são necessários para executar o código-fonte ou gerar um novo pacote.
 
@@ -80,14 +80,20 @@ Se você usar outro endereço, banco, usuário ou senha, defina `DATABASE_URL`, 
 
 ### Clockify e Notion
 
-Defina as credenciais antes de iniciar:
+Na primeira abertura, o Study Sync mostra um assistente para conectar o Clockify. Cole a chave da API, e o sistema valida a conexao, identifica automaticamente seu usuario e seu workspace, e salva essa configuracao no banco local.
+
+Voce nao precisa informar manualmente IDs de usuario ou workspace do Clockify.
+
+Tambem e possivel definir as credenciais por variaveis de ambiente antes de iniciar, caso prefira uma configuracao avancada:
 
 ```text
 CLOCKIFY_API_KEY=sua_chave_do_clockify
+CLOCKIFY_USER_ID=seu_id_de_usuario_do_clockify
+CLOCKIFY_WORKSPACE_ID=seu_id_de_workspace_do_clockify
 NOTION_API_KEY=sua_chave_do_notion
 ```
 
-`CLOCKIFY_API_KEY` é obrigatória para importar e sincronizar os estudos. `NOTION_API_KEY` pode ser deixada vazia quando você quiser usar apenas o armazenamento e os gráficos locais.
+Essa configuracao avancada tambem exige `CLOCKIFY_USER_ID` e `CLOCKIFY_WORKSPACE_ID`. Para a instalacao comum, use o assistente e nao sera necessario informar esses IDs. `NOTION_API_KEY` pode ser deixada vazia quando voce quiser usar apenas o armazenamento e os graficos locais. A chave do Notion tambem pode ser adicionada depois em **Configuracoes**.
 
 Na primeira importação, o sistema também consulta os nomes de projetos, tarefas e tags do Clockify para evitar que os gráficos exibam identificadores internos.
 
@@ -104,9 +110,10 @@ study-sync.sync-on-startup=true
 ### Executável portátil no Windows
 
 1. Inicie o serviço do PostgreSQL.
-2. Configure `DATABASE_PASSWORD`, `CLOCKIFY_API_KEY` e, se necessário, `NOTION_API_KEY` nas variáveis de ambiente do Windows.
+2. Configure `DATABASE_PASSWORD` nas variáveis de ambiente do Windows.
 3. Abra `dist\\StudySync\\StudySync.exe` com duplo clique.
-4. Acesse `http://localhost:8080/` quando a aplicação estiver pronta.
+4. Na primeira abertura, conecte sua conta do Clockify pelo assistente.
+5. Acesse `http://localhost:8080/` quando a aplicação estiver pronta.
 
 O executável já inclui o Java e não exige Maven. Ele ainda depende do PostgreSQL local e das configurações de ambiente descritas acima.
 

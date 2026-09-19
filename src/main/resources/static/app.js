@@ -1,4 +1,4 @@
-const state = { weeks: [], history: [], analytics: null };
+const state = { weeks: [], history: [], analytics: null, setupWasOpened: false };
 
 const elements = {
     analyticsActiveDays: document.querySelector('#analytics-active-days'),
@@ -49,6 +49,14 @@ const elements = {
     previousWeekButton: document.querySelector('#previous-week-button'),
     refreshButton: document.querySelector('#refresh-button'),
     saveSettingsButton: document.querySelector('#save-settings-button'),
+    setupClockifyApiKey: document.querySelector('#setup-clockify-api-key'),
+    setupConnectButton: document.querySelector('#setup-connect-button'),
+    setupConnectStep: document.querySelector('#setup-connect-step'),
+    setupFinishButton: document.querySelector('#setup-finish-button'),
+    setupForm: document.querySelector('#setup-form'),
+    setupMessage: document.querySelector('#setup-message'),
+    setupModal: document.querySelector('#setup-modal'),
+    setupSuccessStep: document.querySelector('#setup-success-step'),
     settingsForm: document.querySelector('#settings-form'),
     settingsMessage: document.querySelector('#settings-message'),
     settingsState: document.querySelector('#settings-state'),
@@ -141,13 +149,28 @@ function setEmptyState(element, colspan, message, error = false) {
     element.appendChild(row);
 }
 
-function renderSettings(settings) {
+function renderSettings(settings, openSetup = false) {
     const clockify = settings.clockifyConfigured ? 'Clockify configurado' : 'Clockify pendente';
     const notion = settings.notionConfigured ? 'Notion configurado' : 'Notion opcional';
     elements.settingsState.textContent = `${clockify} - ${notion}`;
     elements.sidebarConnection.textContent = settings.clockifyConfigured ? 'Clockify conectado' : 'Configuracao pendente';
     elements.setupGuide.hidden = settings.clockifyConfigured;
     elements.testClockifyButton.disabled = !settings.clockifyConfigured;
+    if (!settings.clockifyConfigured && openSetup && !state.setupWasOpened) showSetup();
+}
+
+function showSetup() {
+    state.setupWasOpened = true;
+    elements.setupConnectStep.hidden = false;
+    elements.setupSuccessStep.hidden = true;
+    elements.setupModal.hidden = false;
+    document.body.classList.add('is-onboarding');
+    window.setTimeout(() => elements.setupClockifyApiKey.focus(), 0);
+}
+
+function closeSetup() {
+    elements.setupModal.hidden = true;
+    document.body.classList.remove('is-onboarding');
 }
 
 function renderGoalsSettings(goals) {
@@ -416,7 +439,7 @@ async function loadDashboard() {
         ]);
         state.weeks = weeks;
         state.history = history;
-        renderSettings(settings);
+        renderSettings(settings, true);
         renderGoalsSettings(goals);
         renderGoals(goalProgress);
         renderSubjectGoals(subjectGoals);
@@ -509,18 +532,61 @@ async function saveSettings(event) {
     elements.settingsMessage.textContent = 'Salvando integracoes...';
     elements.settingsMessage.className = 'muted settings-message';
     try {
-        const response = await fetch('/sync/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clockifyApiKey: elements.clockifyApiKey.value, notionApiKey: elements.notionApiKey.value }) });
-        if (!response.ok) throw new Error('Nao foi possivel salvar as integracoes.');
-        renderSettings(await response.json());
+        const clockifyApiKey = elements.clockifyApiKey.value.trim();
+        const notionApiKey = elements.notionApiKey.value.trim();
+        if (!clockifyApiKey && !notionApiKey) throw new Error('Informe ao menos uma chave para atualizar as integracoes.');
+
+        let settings;
+        if (clockifyApiKey) settings = await connectClockify(clockifyApiKey);
+        if (notionApiKey) {
+            const response = await fetch('/sync/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ notionApiKey })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || 'Nao foi possivel salvar a chave do Notion.');
+            settings = result;
+        }
+        renderSettings(settings);
         elements.clockifyApiKey.value = '';
         elements.notionApiKey.value = '';
-        elements.settingsMessage.textContent = 'Integracoes salvas com sucesso.';
+        elements.settingsMessage.textContent = 'Integracoes atualizadas com sucesso.';
         elements.clockifyTestMessage.textContent = '';
     } catch (error) {
         elements.settingsMessage.textContent = error.message;
         elements.settingsMessage.className = 'muted settings-message error-text';
     } finally {
         elements.saveSettingsButton.disabled = false;
+    }
+}
+
+async function connectClockify(apiKey) {
+    const response = await fetch('/sync/settings/connect-clockify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.message || 'Nao foi possivel conectar ao Clockify.');
+    return result;
+}
+
+async function completeSetup(event) {
+    event.preventDefault();
+    elements.setupConnectButton.disabled = true;
+    elements.setupMessage.textContent = 'Validando a chave e localizando seu workspace...';
+    elements.setupMessage.className = 'settings-message';
+    try {
+        const settings = await connectClockify(elements.setupClockifyApiKey.value.trim());
+        renderSettings(settings);
+        elements.setupConnectStep.hidden = true;
+        elements.setupSuccessStep.hidden = false;
+    } catch (error) {
+        elements.setupMessage.textContent = error.message;
+        elements.setupMessage.className = 'settings-message error-text';
+    } finally {
+        elements.setupConnectButton.disabled = false;
     }
 }
 
@@ -598,6 +664,13 @@ initializeAnalyticsFilters();
 document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => switchView(button.dataset.view)));
 elements.refreshButton.addEventListener('click', loadDashboard);
 elements.settingsForm.addEventListener('submit', saveSettings);
+elements.setupForm.addEventListener('submit', completeSetup);
+elements.setupFinishButton.addEventListener('click', () => {
+    closeSetup();
+    switchView('overview');
+    loadDashboard();
+});
+document.querySelectorAll('[data-open-setup]').forEach((button) => button.addEventListener('click', showSetup));
 elements.goalsForm.addEventListener('submit', saveGoals);
 elements.subjectGoalsForm.addEventListener('submit', saveSubjectGoal);
 elements.subjectGoalsList.addEventListener('click', (event) => {

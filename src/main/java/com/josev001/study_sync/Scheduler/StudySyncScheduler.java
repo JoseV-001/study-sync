@@ -1,6 +1,7 @@
 package com.josev001.study_sync.Scheduler;
 
 import com.josev001.study_sync.dto.SyncResultDto;
+import com.josev001.study_sync.service.IntegrationSettingsService;
 import com.josev001.study_sync.service.StudySyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,13 +18,16 @@ public class StudySyncScheduler {
             LoggerFactory.getLogger(StudySyncScheduler.class);
 
     private final StudySyncService studySyncService;
+    private final IntegrationSettingsService settingsService;
     private final boolean syncOnStartup;
 
     public StudySyncScheduler(
             StudySyncService studySyncService,
+            IntegrationSettingsService settingsService,
             @Value("${study-sync.sync-on-startup:true}") boolean syncOnStartup
     ) {
         this.studySyncService = studySyncService;
+        this.settingsService = settingsService;
         this.syncOnStartup = syncOnStartup;
     }
 
@@ -44,6 +48,11 @@ public class StudySyncScheduler {
     }
 
     private void syncPreviousWeek(String trigger) {
+        if (!settingsService.getSettings().clockifyConfigured()) {
+            logger.info("Sincronizacao {} ignorada: Clockify ainda nao foi configurado.", trigger);
+            return;
+        }
+
         try {
         SyncResultDto result = studySyncService.syncWeekWithRetry(
                 java.time.LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo")).minusWeeks(1),

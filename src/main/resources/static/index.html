@@ -65,7 +65,7 @@
                         <div class="setup-step"><span class="setup-step-number">2</span><span><strong>Teste a conexao</strong><small>Confirme se o Study Sync consegue acessar seus registros.</small></span></div>
                         <div class="setup-step"><span class="setup-step-number">3</span><span><strong>Importe seus estudos</strong><small>Escolha um periodo e acompanhe seus indicadores.</small></span></div>
                     </div>
-                    <button class="button button-primary" type="button" data-view="settings"><span class="icon icon-settings" aria-hidden="true"></span>Configurar agora</button>
+                    <button class="button button-primary" type="button" data-open-setup><span class="icon icon-settings" aria-hidden="true"></span>Configurar agora</button>
                 </section>
                 <section class="goals-panel" aria-labelledby="goals-title">
                     <div class="section-heading"><div><p class="section-kicker">CONSTANCIA</p><h2 id="goals-title">Metas de estudo</h2></div><button class="button button-secondary button-compact" type="button" data-view="settings"><span class="icon icon-settings" aria-hidden="true"></span>Configurar metas</button></div>
@@ -148,8 +148,8 @@
                         <div id="settings-state" class="connection-state">Verificando configuracao...</div>
                     </div>
                     <form id="settings-form" class="settings-form">
-                        <label><span>Chave API do Clockify <b>*</b></span><input id="clockify-api-key" name="clockifyApiKey" type="password" autocomplete="new-password" placeholder="Obrigatoria para importar seus estudos"><small class="field-note">Usada para consultar seus registros de tempo.</small></label>
-                        <label><span>Chave API do Notion <em>(opcional)</em></span><input id="notion-api-key" name="notionApiKey" type="password" autocomplete="new-password" placeholder="Deixe vazio para usar apenas localmente"><small class="field-note">A integracao atual depende do modelo do meu workspace e funciona apenas no meu ambiente.</small></label>
+                        <label><span>Nova chave API do Clockify <em>(opcional)</em></span><input id="clockify-api-key" name="clockifyApiKey" type="password" autocomplete="new-password" placeholder="Deixe vazio para manter a conexao atual"><small class="field-note">Ao salvar, o Study Sync valida a chave e encontra seu usuario e workspace automaticamente.</small></label>
+                        <label><span>Chave API do Notion <em>(opcional)</em></span><input id="notion-api-key" name="notionApiKey" type="password" autocomplete="new-password" placeholder="Deixe vazio para nao alterar"><small class="field-note">A integracao atual depende do modelo do meu workspace e funciona apenas no meu ambiente.</small></label>
                         <div class="settings-actions"><button id="save-settings-button" class="button button-primary" type="submit"><span class="icon icon-settings" aria-hidden="true"></span>Salvar integracoes</button><button id="test-clockify-button" class="button button-secondary" type="button"><span class="icon icon-refresh" aria-hidden="true"></span>Testar Clockify</button></div>
                         <p id="settings-message" class="settings-message">Preencha somente as chaves que deseja alterar.</p>
                         <p id="clockify-test-message" class="settings-message" aria-live="polite"></p>
@@ -166,6 +166,27 @@
             </section>
         </main>
     </div>
+</div>
+<div id="setup-modal" class="setup-modal" role="dialog" aria-modal="true" aria-labelledby="setup-modal-title" hidden>
+    <section class="setup-dialog">
+        <div id="setup-connect-step">
+            <div class="setup-dialog-heading"><img class="setup-dialog-logo" src="/assets/jose-victor-logo.png" alt="" width="52" height="52"><div><p class="section-kicker">BEM-VINDO</p><h2 id="setup-modal-title">Conecte seu Clockify</h2></div></div>
+            <p class="setup-dialog-copy">Essa configuracao acontece uma unica vez. Sua chave fica salva somente no banco local do Study Sync.</p>
+            <ol class="setup-progress" aria-label="Etapas da configuracao"><li class="is-active"><span>1</span>Conectar Clockify</li><li><span>2</span>Comecar a acompanhar</li></ol>
+            <form id="setup-form" class="setup-form">
+                <label><span>Chave API do Clockify</span><input id="setup-clockify-api-key" type="password" autocomplete="new-password" required placeholder="Cole sua chave aqui"><small class="field-note">O sistema encontra automaticamente seu usuario e workspace.</small></label>
+                <a class="inline-link" href="https://app.clockify.me/user/settings" target="_blank" rel="noopener noreferrer">Onde encontro minha chave no Clockify?</a>
+                <button id="setup-connect-button" class="button button-primary" type="submit"><span class="icon icon-sync" aria-hidden="true"></span>Conectar Clockify</button>
+                <p id="setup-message" class="settings-message" aria-live="polite">O Notion pode ser configurado depois, se voce quiser.</p>
+            </form>
+        </div>
+        <div id="setup-success-step" hidden>
+            <div class="setup-success-mark" aria-hidden="true">OK</div>
+            <p class="section-kicker">CONEXAO CONCLUIDA</p><h2>Clockify conectado</h2>
+            <p class="setup-dialog-copy">Seus dados ja podem ser importados. O Notion continua opcional e pode ser configurado depois em Configuracoes.</p>
+            <button id="setup-finish-button" class="button button-primary" type="button"><span class="icon icon-dashboard" aria-hidden="true"></span>Abrir dashboard</button>
+        </div>
+    </section>
 </div>
 <script src="/app.js" defer></script>
 </body>
