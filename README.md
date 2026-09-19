@@ -4,7 +4,7 @@ Importa estudos do Clockify, guarda tudo localmente e mostra seu progresso em um
 
 ## Como funciona
 
-Por padrão, ao abrir a aplicação ela sincroniza a semana anterior. Isso permite abrir o projeto na segunda à tarde ou à noite e já deixar o Notion atualizado. Como segunda camada, a aplicação também tenta sincronizar automaticamente toda segunda-feira às 20:00, no horário de São Paulo.
+Por padrão, ao abrir a aplicação ela sincroniza a semana anterior. Isso permite abrir o projeto na segunda à tarde ou à noite e já deixar o Notion atualizado. Tambem e possivel configurar tarefas do Windows para deixar a dashboard disponivel no login e sincronizar automaticamente toda segunda-feira as 20:00, mesmo que ela nao esteja aberta.
 
 Também é possível executar manualmente enquanto a aplicação estiver rodando:
 
@@ -112,6 +112,7 @@ O horário automático pode ser alterado em `application.properties`:
 ```properties
 study-sync.schedule.cron=0 0 20 * * MON
 study-sync.schedule.zone=America/Sao_Paulo
+study-sync.schedule.enabled=true
 study-sync.sync-on-startup=true
 ```
 
@@ -124,6 +125,15 @@ study-sync.sync-on-startup=true
 3. Acesse `http://localhost:8080/` quando a aplicacao estiver pronta.
 
 O executavel inclui o Java e o SQLite. Nenhum banco externo e necessario.
+
+### Inicio automatico no Windows
+
+Depois de gerar o executavel, abra `enable-windows-autostart.bat` com duplo clique e aceite a confirmacao do Windows. Ele cria duas tarefas para o usuario atual:
+
+- inicia a dashboard silenciosamente quando voce entra no Windows;
+- executa uma sincronizacao sem abrir o navegador toda segunda-feira as 20:00 e encerra ao terminar.
+
+Para remover as tarefas, abra `disable-windows-autostart.bat`. Os arquivos usam o executavel em `dist\StudySync\StudySync.exe`; se voce mover o pacote, execute novamente o arquivo de ativacao na nova pasta.
 
 ### Código-fonte
 

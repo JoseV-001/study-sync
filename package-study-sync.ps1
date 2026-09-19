@@ -47,6 +47,7 @@ Write-Host 'Gerando o pacote executavel...' -ForegroundColor Cyan
     --vendor 'JoseV-001' `
     --description 'Study Sync - local study dashboard' `
     --java-options '-Dstudy-sync.sync-on-startup=false' `
+    --java-options '-Dstudy-sync.schedule.enabled=false' `
     --java-options '-Dstudy-sync.open-browser=true'
 
 if ($LASTEXITCODE -ne 0) {

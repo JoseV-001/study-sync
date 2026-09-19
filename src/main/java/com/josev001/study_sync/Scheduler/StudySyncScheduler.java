@@ -20,15 +20,18 @@ public class StudySyncScheduler {
     private final StudySyncService studySyncService;
     private final IntegrationSettingsService settingsService;
     private final boolean syncOnStartup;
+    private final boolean scheduleEnabled;
 
     public StudySyncScheduler(
             StudySyncService studySyncService,
             IntegrationSettingsService settingsService,
-            @Value("${study-sync.sync-on-startup:true}") boolean syncOnStartup
+            @Value("${study-sync.sync-on-startup:true}") boolean syncOnStartup,
+            @Value("${study-sync.schedule.enabled:true}") boolean scheduleEnabled
     ) {
         this.studySyncService = studySyncService;
         this.settingsService = settingsService;
         this.syncOnStartup = syncOnStartup;
+        this.scheduleEnabled = scheduleEnabled;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -44,6 +47,10 @@ public class StudySyncScheduler {
     )
 
     public void syncWeeklyStudyTime() {
+        if (!scheduleEnabled) {
+            return;
+        }
+
         syncPreviousWeek("scheduler");
     }
 
@@ -54,10 +61,7 @@ public class StudySyncScheduler {
         }
 
         try {
-        SyncResultDto result = studySyncService.syncWeekWithRetry(
-                java.time.LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo")).minusWeeks(1),
-                trigger
-        );
+        SyncResultDto result = studySyncService.syncPreviousWeek(trigger);
 
         logger.info(
                 "Horas sincronizadas {} com o Notion para a semana "

@@ -63,7 +63,12 @@ public class StudySyncService {
 
     @Transactional(noRollbackFor = RuntimeException.class)
     public SyncResultDto syncPreviousWeek() {
-        return syncWeekWithRetry(getStartOfWeek(LocalDate.now(APP_ZONE)).minusWeeks(1), "manual");
+        return syncPreviousWeek("manual");
+    }
+
+    @Transactional(noRollbackFor = RuntimeException.class)
+    public SyncResultDto syncPreviousWeek(String triggeredBy) {
+        return syncWeekWithRetry(getStartOfWeek(LocalDate.now(APP_ZONE)).minusWeeks(1), triggeredBy);
     }
 
     @Transactional(noRollbackFor = RuntimeException.class)
