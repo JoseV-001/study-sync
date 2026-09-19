@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface StudyEntryRepository extends JpaRepository<StudyEntry, String> {
 
+    List<StudyEntry> findAllByOrderByStartedAtAsc();
+
     List<StudyEntry> findByStartedAtLessThanAndEndedAtGreaterThan(
             Instant rangeEnd,
             Instant rangeStart

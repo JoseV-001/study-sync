@@ -154,6 +154,18 @@ public class StudyEntry {
         return subject;
     }
 
+    public String getClockifyEntryId() {
+        return clockifyEntryId;
+    }
+
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public String getTaskId() {
+        return taskId;
+    }
+
     public String getProjectName() {
         return projectName;
     }
@@ -166,6 +178,14 @@ public class StudyEntry {
         return tagNames;
     }
 
+    public String getTagIds() {
+        return tagIds;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
     public Instant getStartedAt() {
         return startedAt;
     }
@@ -176,5 +196,13 @@ public class StudyEntry {
 
     public long getDurationMinutes() {
         return durationMinutes;
+    }
+
+    public LocalDate getRecordedDate() {
+        return recordedDate;
+    }
+
+    public Instant getSyncedAt() {
+        return syncedAt;
     }
 }

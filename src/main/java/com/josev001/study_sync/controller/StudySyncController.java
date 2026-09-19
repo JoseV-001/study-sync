@@ -10,6 +10,7 @@ import com.josev001.study_sync.dto.StudyImportDto;
 import com.josev001.study_sync.dto.ClockifyConnectionDto;
 import com.josev001.study_sync.dto.ClockifySetupRequest;
 import com.josev001.study_sync.dto.ApiErrorDto;
+import com.josev001.study_sync.dto.StudyBackupDto;
 import com.josev001.study_sync.dto.StudyGoalDto;
 import com.josev001.study_sync.dto.StudyGoalProgressDto;
 import com.josev001.study_sync.dto.StudyGoalRequest;
@@ -22,6 +23,7 @@ import com.josev001.study_sync.service.StudyAnalyticsService;
 import com.josev001.study_sync.service.StudySyncService;
 import com.josev001.study_sync.service.StudyGoalService;
 import com.josev001.study_sync.service.SubjectGoalService;
+import com.josev001.study_sync.service.BackupService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +37,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 import java.time.LocalDate;
 import java.time.DayOfWeek;
@@ -51,6 +55,7 @@ public class StudySyncController {
     private final ClockifyClient clockifyClient;
     private final StudyGoalService studyGoalService;
     private final SubjectGoalService subjectGoalService;
+    private final BackupService backupService;
 
     public StudySyncController(
             StudySyncService studySyncService,
@@ -58,7 +63,8 @@ public class StudySyncController {
             StudyAnalyticsService studyAnalyticsService,
             ClockifyClient clockifyClient,
             StudyGoalService studyGoalService,
-            SubjectGoalService subjectGoalService
+            SubjectGoalService subjectGoalService,
+            BackupService backupService
     ) {
         this.studySyncService = studySyncService;
         this.settingsService = settingsService;
@@ -66,6 +72,7 @@ public class StudySyncController {
         this.clockifyClient = clockifyClient;
         this.studyGoalService = studyGoalService;
         this.subjectGoalService = subjectGoalService;
+        this.backupService = backupService;
     }
 
     @PostMapping("/current-week")
@@ -220,5 +227,30 @@ public class StudySyncController {
                 from != null ? from : today.minusDays(29),
                 to != null ? to : today
         );
+    }
+
+    @GetMapping(value = "/backup", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<StudyBackupDto> downloadBackup() {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=study-sync-backup-" + LocalDate.now() + ".json")
+                .body(backupService.createBackup());
+    }
+
+    @PostMapping("/backup/restore")
+    public ResponseEntity<?> restoreBackup(@RequestBody StudyBackupDto backup) {
+        try {
+            backupService.restoreBackup(backup);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException exception) {
+            return ResponseEntity.badRequest().body(new ApiErrorDto(exception.getMessage()));
+        }
+    }
+
+    @GetMapping(value = "/export/study-entries.csv", produces = "text/csv")
+    public ResponseEntity<String> exportStudyEntries() {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=study-sync-estudos-" + LocalDate.now() + ".csv")
+                .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
+                .body(backupService.exportEntriesAsCsv());
     }
 }

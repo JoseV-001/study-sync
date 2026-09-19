@@ -52,6 +52,24 @@ public class SyncRun {
         this.createdAt = createdAt;
     }
 
+    public SyncRun(
+            LocalDate weekStart,
+            String triggeredBy,
+            SyncRunStatus status,
+            Long totalMinutes,
+            String errorMessage,
+            Instant createdAt,
+            Instant finishedAt
+    ) {
+        this.weekStart = weekStart;
+        this.triggeredBy = triggeredBy;
+        this.status = status;
+        this.totalMinutes = totalMinutes;
+        this.errorMessage = errorMessage;
+        this.createdAt = createdAt;
+        this.finishedAt = finishedAt;
+    }
+
     public void markSuccess(long totalMinutes, Instant finishedAt) {
         this.status = SyncRunStatus.SUCCESS;
         this.totalMinutes = totalMinutes;

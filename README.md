@@ -126,6 +126,16 @@ study-sync.sync-on-startup=true
 
 O executavel inclui o Java e o SQLite. Nenhum banco externo e necessario.
 
+### Backup e exportacao
+
+Na aba **Configuracoes**, a secao **Backup e exportacao** permite:
+
+- baixar um backup JSON com estudos, metas, semanas sincronizadas e historico;
+- restaurar esse mesmo arquivo, substituindo os dados locais apos confirmacao;
+- exportar os registros detalhados em CSV, compativel com planilhas.
+
+As chaves do Clockify e do Notion nao fazem parte do backup. Depois de restaurar em outro computador, conecte o Clockify novamente pelo assistente inicial.
+
 ### Inicio automatico no Windows
 
 Depois de gerar o executavel, abra `enable-windows-autostart.bat` com duplo clique e aceite a confirmacao do Windows. Ele cria duas tarefas para o usuario atual:

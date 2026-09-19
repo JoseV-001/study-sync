@@ -20,11 +20,14 @@ const elements = {
     analyticsTotal: document.querySelector('#analytics-total'),
     applyAnalyticsButton: document.querySelector('#apply-analytics-button'),
     averageHours: document.querySelector('#average-hours'),
+    backupMessage: document.querySelector('#backup-message'),
     clockifyApiKey: document.querySelector('#clockify-api-key'),
     clockifyTestMessage: document.querySelector('#clockify-test-message'),
     testClockifyButton: document.querySelector('#test-clockify-button'),
     currentWeekButton: document.querySelector('#current-week-button'),
     dailyGoalCurrent: document.querySelector('#daily-goal-current'),
+    downloadBackupButton: document.querySelector('#download-backup-button'),
+    exportEntriesButton: document.querySelector('#export-entries-button'),
     dailyGoalHours: document.querySelector('#daily-goal-hours'),
     dailyGoalProgress: document.querySelector('#daily-goal-progress'),
     dailyGoalStatus: document.querySelector('#daily-goal-status'),
@@ -48,6 +51,8 @@ const elements = {
     periodRange: document.querySelector('#period-range'),
     previousWeekButton: document.querySelector('#previous-week-button'),
     refreshButton: document.querySelector('#refresh-button'),
+    restoreBackupButton: document.querySelector('#restore-backup-button'),
+    restoreBackupInput: document.querySelector('#restore-backup-input'),
     saveSettingsButton: document.querySelector('#save-settings-button'),
     setupClockifyApiKey: document.querySelector('#setup-clockify-api-key'),
     setupConnectButton: document.querySelector('#setup-connect-button'),
@@ -526,6 +531,50 @@ async function deleteSubjectGoal(goalId) {
     elements.subjectGoalMessage.className = 'muted settings-message success-text';
 }
 
+function downloadFile(url) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = '';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+}
+
+function showBackupMessage(message, isError = false) {
+    elements.backupMessage.textContent = message;
+    elements.backupMessage.className = `settings-message${isError ? ' error-text' : ' success-text'}`;
+}
+
+async function restoreBackup(event) {
+    const [file] = event.target.files;
+    if (!file) return;
+
+    try {
+        const backup = JSON.parse(await file.text());
+        const confirmed = window.confirm('Restaurar este backup substitui todos os estudos, metas e historico locais. Deseja continuar?');
+        if (!confirmed) return;
+
+        elements.restoreBackupButton.disabled = true;
+        showBackupMessage('Restaurando backup...');
+        const response = await fetch('/sync/backup/restore', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(backup)
+        });
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(result.message || 'Nao foi possivel restaurar o backup.');
+        }
+        await loadDashboard();
+        showBackupMessage('Backup restaurado com sucesso.');
+    } catch (error) {
+        showBackupMessage(error.message, true);
+    } finally {
+        elements.restoreBackupButton.disabled = false;
+        elements.restoreBackupInput.value = '';
+    }
+}
+
 async function saveSettings(event) {
     event.preventDefault();
     elements.saveSettingsButton.disabled = true;
@@ -688,6 +737,10 @@ elements.settingsSubjectGoalsList.addEventListener('click', (event) => {
     });
 });
 elements.testClockifyButton.addEventListener('click', testClockifyConnection);
+elements.downloadBackupButton.addEventListener('click', () => downloadFile('/sync/backup'));
+elements.exportEntriesButton.addEventListener('click', () => downloadFile('/sync/export/study-entries.csv'));
+elements.restoreBackupButton.addEventListener('click', () => elements.restoreBackupInput.click());
+elements.restoreBackupInput.addEventListener('change', restoreBackup);
 elements.applyAnalyticsButton.addEventListener('click', loadDashboard);
 elements.analyticsGranularity.addEventListener('change', () => state.analytics && renderAnalytics(state.analytics));
 elements.importAnalyticsButton.addEventListener('click', importAnalyticsPeriod);
