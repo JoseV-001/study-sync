@@ -9,10 +9,14 @@ import com.josev001.study_sync.dto.StudyAnalyticsDto;
 import com.josev001.study_sync.dto.StudyImportDto;
 import com.josev001.study_sync.dto.ClockifyConnectionDto;
 import com.josev001.study_sync.dto.ApiErrorDto;
+import com.josev001.study_sync.dto.StudyGoalDto;
+import com.josev001.study_sync.dto.StudyGoalProgressDto;
+import com.josev001.study_sync.dto.StudyGoalRequest;
 import com.josev001.study_sync.client.ClockifyClient;
 import com.josev001.study_sync.service.IntegrationSettingsService;
 import com.josev001.study_sync.service.StudyAnalyticsService;
 import com.josev001.study_sync.service.StudySyncService;
+import com.josev001.study_sync.service.StudyGoalService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,17 +42,20 @@ public class StudySyncController {
     private final IntegrationSettingsService settingsService;
     private final StudyAnalyticsService studyAnalyticsService;
     private final ClockifyClient clockifyClient;
+    private final StudyGoalService studyGoalService;
 
     public StudySyncController(
             StudySyncService studySyncService,
             IntegrationSettingsService settingsService,
             StudyAnalyticsService studyAnalyticsService,
-            ClockifyClient clockifyClient
+            ClockifyClient clockifyClient,
+            StudyGoalService studyGoalService
     ) {
         this.studySyncService = studySyncService;
         this.settingsService = settingsService;
         this.studyAnalyticsService = studyAnalyticsService;
         this.clockifyClient = clockifyClient;
+        this.studyGoalService = studyGoalService;
     }
 
     @PostMapping("/current-week")
@@ -113,6 +120,21 @@ public class StudySyncController {
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                     .body(new ClockifyConnectionDto(false, "Nao foi possivel validar a chave do Clockify."));
         }
+    }
+
+    @GetMapping("/goals")
+    public StudyGoalDto getGoals() {
+        return studyGoalService.getGoals();
+    }
+
+    @PutMapping("/goals")
+    public StudyGoalDto saveGoals(@Valid @RequestBody StudyGoalRequest request) {
+        return studyGoalService.saveGoals(request);
+    }
+
+    @GetMapping("/goals/progress")
+    public StudyGoalProgressDto getGoalProgress() {
+        return studyGoalService.getProgress();
     }
 
     @PostMapping("/import")

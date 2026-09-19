@@ -173,4 +173,8 @@ public class StudyEntry {
     public Instant getEndedAt() {
         return endedAt;
     }
+
+    public long getDurationMinutes() {
+        return durationMinutes;
+    }
 }

@@ -24,6 +24,15 @@ const elements = {
     clockifyTestMessage: document.querySelector('#clockify-test-message'),
     testClockifyButton: document.querySelector('#test-clockify-button'),
     currentWeekButton: document.querySelector('#current-week-button'),
+    dailyGoalCurrent: document.querySelector('#daily-goal-current'),
+    dailyGoalHours: document.querySelector('#daily-goal-hours'),
+    dailyGoalProgress: document.querySelector('#daily-goal-progress'),
+    dailyGoalStatus: document.querySelector('#daily-goal-status'),
+    dailyGoalTarget: document.querySelector('#daily-goal-target'),
+    goalsForm: document.querySelector('#goals-form'),
+    goalsMessage: document.querySelector('#goals-message'),
+    goalsSettingsMessage: document.querySelector('#goals-settings-message'),
+    saveGoalsButton: document.querySelector('#save-goals-button'),
     historyState: document.querySelector('#history-state'),
     historyTableBody: document.querySelector('#history-table-body'),
     hourChart: document.querySelector('#hour-chart'),
@@ -49,7 +58,12 @@ const elements = {
     trendChart: document.querySelector('#trend-chart'),
     trendChartTitle: document.querySelector('#trend-chart-title'),
     trendChartTotal: document.querySelector('#trend-chart-total'),
+    weeklyGoalCurrent: document.querySelector('#weekly-goal-current'),
+    weeklyGoalProgress: document.querySelector('#weekly-goal-progress'),
+    weeklyGoalStatus: document.querySelector('#weekly-goal-status'),
+    weeklyGoalTarget: document.querySelector('#weekly-goal-target'),
     weekdayChart: document.querySelector('#weekday-chart'),
+    weeklyGoalHours: document.querySelector('#weekly-goal-hours'),
     weeksCount: document.querySelector('#weeks-count'),
     weeksState: document.querySelector('#weeks-state'),
     weeksTableBody: document.querySelector('#weeks-table-body')
@@ -102,6 +116,10 @@ function formatHours(minutes) {
     return `${(Number(minutes || 0) / 60).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}h`;
 }
 
+function formatGoalInput(minutes) {
+    return minutes ? String(Number((minutes / 60).toFixed(2))) : '';
+}
+
 function statusLabel(status) {
     return { SUCCESS: 'Concluida', RUNNING: 'Em andamento', FAILED: 'Falhou' }[status] || status || '--';
 }
@@ -124,6 +142,38 @@ function renderSettings(settings) {
     elements.sidebarConnection.textContent = settings.clockifyConfigured ? 'Clockify conectado' : 'Configuracao pendente';
     elements.setupGuide.hidden = settings.clockifyConfigured;
     elements.testClockifyButton.disabled = !settings.clockifyConfigured;
+}
+
+function renderGoalsSettings(goals) {
+    elements.dailyGoalHours.value = formatGoalInput(goals.dailyMinutes);
+    elements.weeklyGoalHours.value = formatGoalInput(goals.weeklyMinutes);
+}
+
+function renderGoals(progress) {
+    const dailyConfigured = progress.dailyGoalMinutes > 0;
+    const weeklyConfigured = progress.weeklyGoalMinutes > 0;
+    const dailyPercentage = dailyConfigured ? progress.dailyProgressPercentage : 0;
+    const weeklyPercentage = weeklyConfigured ? progress.weeklyProgressPercentage : 0;
+
+    elements.dailyGoalCurrent.textContent = formatMinutes(progress.todayMinutes);
+    elements.dailyGoalTarget.textContent = dailyConfigured ? `Meta: ${formatMinutes(progress.dailyGoalMinutes)}` : 'Sem meta definida';
+    elements.dailyGoalStatus.textContent = dailyConfigured
+        ? (progress.dailyGoalReached ? 'Concluida' : `${dailyPercentage}%`)
+        : 'Desativada';
+    elements.dailyGoalProgress.style.setProperty('--goal-size', `${Math.min(dailyPercentage, 100)}%`);
+    elements.dailyGoalProgress.classList.toggle('goal-reached', progress.dailyGoalReached);
+
+    elements.weeklyGoalCurrent.textContent = formatMinutes(progress.weekMinutes);
+    elements.weeklyGoalTarget.textContent = weeklyConfigured ? `Meta: ${formatMinutes(progress.weeklyGoalMinutes)}` : 'Sem meta definida';
+    elements.weeklyGoalStatus.textContent = weeklyConfigured
+        ? (progress.weeklyGoalReached ? 'Concluida' : `${weeklyPercentage}%`)
+        : 'Desativada';
+    elements.weeklyGoalProgress.style.setProperty('--goal-size', `${Math.min(weeklyPercentage, 100)}%`);
+    elements.weeklyGoalProgress.classList.toggle('goal-reached', progress.weeklyGoalReached);
+
+    elements.goalsMessage.textContent = dailyConfigured || weeklyConfigured
+        ? `Semana de ${formatDate(progress.weekStart)} a ${formatDate(progress.weekEnd)}.`
+        : 'Defina suas metas em Configuracoes para acompanhar seu progresso.';
 }
 
 function renderWeeks() {
@@ -300,10 +350,19 @@ async function loadDashboard() {
     elements.settingsState.textContent = 'Verificando...';
     elements.analyticsState.textContent = 'Carregando...';
     try {
-        const [weeks, history, settings, analytics] = await Promise.all([fetchJson('/sync/weeks'), fetchJson('/sync/history'), fetchJson('/sync/settings'), fetchJson(analyticsUrl())]);
+        const [weeks, history, settings, analytics, goals, goalProgress] = await Promise.all([
+            fetchJson('/sync/weeks'),
+            fetchJson('/sync/history'),
+            fetchJson('/sync/settings'),
+            fetchJson(analyticsUrl()),
+            fetchJson('/sync/goals'),
+            fetchJson('/sync/goals/progress')
+        ]);
         state.weeks = weeks;
         state.history = history;
         renderSettings(settings);
+        renderGoalsSettings(goals);
+        renderGoals(goalProgress);
         renderWeeks();
         renderHistory();
         renderAnalytics(analytics);
@@ -321,6 +380,36 @@ async function loadDashboard() {
         elements.syncMessage.textContent = 'Verifique se a aplicacao e o banco estao em execucao.';
         elements.syncMessage.className = 'muted error-text';
         elements.lastRefresh.textContent = 'Falha na atualizacao';
+    }
+}
+
+async function saveGoals(event) {
+    event.preventDefault();
+    elements.saveGoalsButton.disabled = true;
+    elements.goalsSettingsMessage.textContent = 'Salvando metas...';
+    elements.goalsSettingsMessage.className = 'muted settings-message';
+    try {
+        const dailyHours = Number(elements.dailyGoalHours.value || 0);
+        const weeklyHours = Number(elements.weeklyGoalHours.value || 0);
+        const response = await fetch('/sync/goals', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                dailyMinutes: Math.round(dailyHours * 60),
+                weeklyMinutes: Math.round(weeklyHours * 60)
+            })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Nao foi possivel salvar as metas.');
+        renderGoalsSettings(result);
+        renderGoals(await fetchJson('/sync/goals/progress'));
+        elements.goalsSettingsMessage.textContent = 'Metas salvas com sucesso.';
+        elements.goalsSettingsMessage.className = 'muted settings-message success-text';
+    } catch (error) {
+        elements.goalsSettingsMessage.textContent = error.message;
+        elements.goalsSettingsMessage.className = 'muted settings-message error-text';
+    } finally {
+        elements.saveGoalsButton.disabled = false;
     }
 }
 
@@ -419,6 +508,7 @@ initializeAnalyticsFilters();
 document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => switchView(button.dataset.view)));
 elements.refreshButton.addEventListener('click', loadDashboard);
 elements.settingsForm.addEventListener('submit', saveSettings);
+elements.goalsForm.addEventListener('submit', saveGoals);
 elements.testClockifyButton.addEventListener('click', testClockifyConnection);
 elements.applyAnalyticsButton.addEventListener('click', loadDashboard);
 elements.analyticsGranularity.addEventListener('change', () => state.analytics && renderAnalytics(state.analytics));

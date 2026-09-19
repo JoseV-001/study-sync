@@ -67,6 +67,14 @@
                     </div>
                     <button class="button button-primary" type="button" data-view="settings"><span class="icon icon-settings" aria-hidden="true"></span>Configurar agora</button>
                 </section>
+                <section class="goals-panel" aria-labelledby="goals-title">
+                    <div class="section-heading"><div><p class="section-kicker">CONSTANCIA</p><h2 id="goals-title">Metas de estudo</h2></div><button class="button button-secondary button-compact" type="button" data-view="settings"><span class="icon icon-settings" aria-hidden="true"></span>Configurar metas</button></div>
+                    <div class="goals-grid">
+                        <article class="goal-card"><div class="goal-card-heading"><span>Meta de hoje</span><strong id="daily-goal-status">--</strong></div><div class="goal-progress-track"><div id="daily-goal-progress" class="goal-progress-fill"></div></div><div class="goal-card-footer"><strong id="daily-goal-current">--</strong><span id="daily-goal-target">--</span></div></article>
+                        <article class="goal-card"><div class="goal-card-heading"><span>Meta da semana</span><strong id="weekly-goal-status">--</strong></div><div class="goal-progress-track"><div id="weekly-goal-progress" class="goal-progress-fill"></div></div><div class="goal-card-footer"><strong id="weekly-goal-current">--</strong><span id="weekly-goal-target">--</span></div></article>
+                    </div>
+                    <p id="goals-message" class="goals-message">Defina suas metas em Configuracoes para acompanhar seu progresso.</p>
+                </section>
                 <div class="stats-grid analytics-stats" aria-label="Resumo do periodo analisado">
                     <article class="stat-card stat-card-accent"><span class="stat-label">Total estudado</span><strong id="analytics-total" class="stat-value">--</strong><span id="analytics-range" class="stat-detail">--</span></article>
                     <article class="stat-card"><span class="stat-label">Media por dia</span><strong id="analytics-average" class="stat-value">--</strong><span class="stat-detail">Inclui dias sem estudo</span></article>
@@ -142,6 +150,10 @@
                         <p id="settings-message" class="settings-message">Preencha somente as chaves que deseja alterar.</p>
                         <p id="clockify-test-message" class="settings-message" aria-live="polite"></p>
                     </form>
+                </section>
+                <section class="settings-panel goals-settings-panel" aria-labelledby="goals-settings-title">
+                    <div class="settings-copy"><p class="section-kicker">CONSTANCIA</p><h2 id="goals-settings-title">Metas de estudo</h2><p>Use horas decimais, como 1,5 para uma hora e meia. Coloque zero para desativar uma meta.</p></div>
+                    <form id="goals-form" class="settings-form"><label><span>Meta diaria (horas)</span><input id="daily-goal-hours" type="number" min="0" max="24" step="0.25" placeholder="Ex.: 2"><small class="field-note">Tempo que voce quer estudar por dia.</small></label><label><span>Meta semanal (horas)</span><input id="weekly-goal-hours" type="number" min="0" max="168" step="0.5" placeholder="Ex.: 10"><small class="field-note">Tempo total desejado de segunda a domingo.</small></label><button id="save-goals-button" class="button button-primary" type="submit"><span class="icon icon-settings" aria-hidden="true"></span>Salvar metas</button><p id="goals-settings-message" class="settings-message">As metas ficam salvas localmente no banco.</p></form>
                 </section>
             </section>
         </main>
