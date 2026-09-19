@@ -19,6 +19,9 @@ public class IntegrationSettingsService {
     private static final String CLOCKIFY_USER_ID = "clockify.user-id";
     private static final String CLOCKIFY_WORKSPACE_ID = "clockify.workspace-id";
     private static final String NOTION_API_KEY = "notion.api-key";
+    private static final String NOTION_DATA_SOURCE_ID = "notion.data-source-id";
+    private static final String NOTION_DATE_PROPERTY = "notion.date-property";
+    private static final String NOTION_HOURS_PROPERTY = "notion.hours-property";
 
     private final AppSettingRepository appSettingRepository;
     private final ClockifyProperties clockifyProperties;
@@ -48,6 +51,18 @@ public class IntegrationSettingsService {
                 .orElse(notionProperties.getApiKey());
     }
 
+    public String getNotionDataSourceId() {
+        return getSettingValue(NOTION_DATA_SOURCE_ID, notionProperties.getDataSourceId());
+    }
+
+    public String getNotionDateProperty() {
+        return getSettingValue(NOTION_DATE_PROPERTY, "Data inicio");
+    }
+
+    public String getNotionHoursProperty() {
+        return getSettingValue(NOTION_HOURS_PROPERTY, "Horas estudadas");
+    }
+
     public String getClockifyUserId() {
         return getSettingValue(CLOCKIFY_USER_ID, clockifyProperties.getUserId());
     }
@@ -61,7 +76,7 @@ public class IntegrationSettingsService {
                 hasText(getClockifyApiKey())
                         && hasText(getClockifyUserId())
                         && hasText(getClockifyWorkspaceId()),
-                hasText(getNotionApiKey())
+                hasText(getNotionApiKey()) && hasText(getNotionDataSourceId())
         );
     }
 
@@ -69,6 +84,15 @@ public class IntegrationSettingsService {
     public IntegrationSettingsDto saveSettings(IntegrationSettingsRequest request) {
         if (hasText(request.notionApiKey())) {
             saveSetting(NOTION_API_KEY, request.notionApiKey());
+        }
+        if (hasText(request.notionDataSourceId())) {
+            saveSetting(NOTION_DATA_SOURCE_ID, request.notionDataSourceId());
+        }
+        if (hasText(request.notionDateProperty())) {
+            saveSetting(NOTION_DATE_PROPERTY, request.notionDateProperty());
+        }
+        if (hasText(request.notionHoursProperty())) {
+            saveSetting(NOTION_HOURS_PROPERTY, request.notionHoursProperty());
         }
         return getSettings();
     }

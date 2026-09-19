@@ -45,6 +45,9 @@ const elements = {
     lastStatus: document.querySelector('#last-status'),
     lastStatusDetail: document.querySelector('#last-status-detail'),
     notionApiKey: document.querySelector('#notion-api-key'),
+    notionDataSourceId: document.querySelector('#notion-data-source-id'),
+    notionDateProperty: document.querySelector('#notion-date-property'),
+    notionHoursProperty: document.querySelector('#notion-hours-property'),
     pageSubtitle: document.querySelector('#page-subtitle'),
     pageTitle: document.querySelector('#page-title'),
     periodHours: document.querySelector('#period-hours'),
@@ -583,15 +586,20 @@ async function saveSettings(event) {
     try {
         const clockifyApiKey = elements.clockifyApiKey.value.trim();
         const notionApiKey = elements.notionApiKey.value.trim();
-        if (!clockifyApiKey && !notionApiKey) throw new Error('Informe ao menos uma chave para atualizar as integracoes.');
+        const notionDataSourceId = elements.notionDataSourceId.value.trim();
+        const notionDateProperty = elements.notionDateProperty.value.trim();
+        const notionHoursProperty = elements.notionHoursProperty.value.trim();
+        if (!clockifyApiKey && !notionApiKey && !notionDataSourceId && !notionDateProperty && !notionHoursProperty) {
+            throw new Error('Informe ao menos uma configuracao para atualizar as integracoes.');
+        }
 
         let settings;
         if (clockifyApiKey) settings = await connectClockify(clockifyApiKey);
-        if (notionApiKey) {
+        if (notionApiKey || notionDataSourceId || notionDateProperty || notionHoursProperty) {
             const response = await fetch('/sync/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ notionApiKey })
+                body: JSON.stringify({ notionApiKey, notionDataSourceId, notionDateProperty, notionHoursProperty })
             });
             const result = await response.json();
             if (!response.ok) throw new Error(result.message || 'Nao foi possivel salvar a chave do Notion.');
@@ -600,6 +608,9 @@ async function saveSettings(event) {
         renderSettings(settings);
         elements.clockifyApiKey.value = '';
         elements.notionApiKey.value = '';
+        elements.notionDataSourceId.value = '';
+        elements.notionDateProperty.value = '';
+        elements.notionHoursProperty.value = '';
         elements.settingsMessage.textContent = 'Integracoes atualizadas com sucesso.';
         elements.clockifyTestMessage.textContent = '';
     } catch (error) {

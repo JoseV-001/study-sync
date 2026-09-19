@@ -51,7 +51,7 @@ Para usar o executável no Windows, você precisa de:
 
 Nao e necessario instalar Java, Maven ou PostgreSQL para usar o executavel portatil. Eles so sao necessarios para executar o codigo-fonte ou gerar um novo pacote.
 
-O Notion é opcional. A integração atual depende de um modelo específico de workspace e funciona no ambiente original do projeto, mas ainda não é compatível com workspaces de outras pessoas. Sem a chave do Notion, o sistema continua importando, analisando e armazenando os estudos localmente.
+O Notion é opcional. Sem ele, o sistema continua importando, analisando e armazenando os estudos localmente.
 
 ## Configuração
 
@@ -104,6 +104,8 @@ NOTION_API_KEY=sua_chave_do_notion
 ```
 
 Essa configuracao avancada tambem exige `CLOCKIFY_USER_ID` e `CLOCKIFY_WORKSPACE_ID`. Para a instalacao comum, use o assistente e nao sera necessario informar esses IDs. `NOTION_API_KEY` pode ser deixada vazia quando voce quiser usar apenas o armazenamento e os graficos locais. A chave do Notion tambem pode ser adicionada depois em **Configuracoes**.
+
+Para conectar outro workspace do Notion, crie uma integration interna no Notion, compartilhe a fonte de dados semanal com ela e, em **Configuracoes**, informe a chave, o ID da fonte e os nomes de duas colunas: uma coluna de data para o inicio da semana e uma coluna de texto para as horas estudadas. Assim, o projeto nao depende mais dos nomes ou IDs do workspace original.
 
 Na primeira importação, o sistema também consulta os nomes de projetos, tarefas e tags do Clockify para evitar que os gráficos exibam identificadores internos.
 

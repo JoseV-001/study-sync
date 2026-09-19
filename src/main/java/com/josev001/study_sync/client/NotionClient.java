@@ -1,6 +1,5 @@
 package com.josev001.study_sync.client;
 
-import com.josev001.study_sync.config.NotionProperties;
 import com.josev001.study_sync.dto.NotionQueryResponseDto;
 import com.josev001.study_sync.service.IntegrationSettingsService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,23 +15,20 @@ import java.util.Map;
 public class NotionClient {
 
     private final RestClient restClient;
-    private final NotionProperties properties;
     private final IntegrationSettingsService settingsService;
 
     public NotionClient(
             @Qualifier("notionRestClient") RestClient restClient,
-            NotionProperties properties,
             IntegrationSettingsService settingsService
     ) {
         this.restClient = restClient;
-        this.properties = properties;
         this.settingsService = settingsService;
     }
 
     // Busca os registros existentes no Planejamento Semanal.
     public String queryWeeklyPlanning() {
         return restClient.post()
-                .uri("/data_sources/" + properties.getDataSourceId() + "/query")
+                .uri("/data_sources/" + getDataSourceId() + "/query")
                 .header("Authorization", "Bearer " + getApiKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of())
@@ -45,7 +41,7 @@ public class NotionClient {
 
         Map<String, Object> body = Map.of(
                 "filter", Map.of(
-                        "property", "Data início",
+                        "property", settingsService.getNotionDateProperty(),
                         "date", Map.of(
                                 "equals", startOfWeek.toString()
                         )
@@ -53,7 +49,7 @@ public class NotionClient {
         );
 
         return restClient.post()
-                .uri("/data_sources/" + properties.getDataSourceId() + "/query")
+                .uri("/data_sources/" + getDataSourceId() + "/query")
                 .header("Authorization", "Bearer " + getApiKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(body)
@@ -66,7 +62,7 @@ public class NotionClient {
 
         Map<String, Object> body = Map.of(
                 "properties", Map.of(
-                        "Horas na semana (Registro apartir de 20/07)",
+                        settingsService.getNotionHoursProperty(),
                         Map.of(
                                 "rich_text", List.of(
                                         Map.of(
@@ -95,6 +91,14 @@ public class NotionClient {
             throw new IllegalStateException("Notion API key is not configured");
         }
         return apiKey;
+    }
+
+    private String getDataSourceId() {
+        String dataSourceId = settingsService.getNotionDataSourceId();
+        if (dataSourceId == null || dataSourceId.isBlank()) {
+            throw new IllegalStateException("Notion data source is not configured");
+        }
+        return dataSourceId;
     }
 
 }
