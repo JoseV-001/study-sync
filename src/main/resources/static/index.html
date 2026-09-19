@@ -75,6 +75,10 @@
                     </div>
                     <p id="goals-message" class="goals-message">Defina suas metas em Configuracoes para acompanhar seu progresso.</p>
                 </section>
+                <section class="subject-goals-panel" aria-labelledby="subject-goals-title">
+                    <div class="section-heading"><div><p class="section-kicker">FOCO DA SEMANA</p><h2 id="subject-goals-title">Metas por materia ou topico</h2></div><span class="section-state">Semana atual</span></div>
+                    <div id="subject-goals-list" class="subject-goals-list"><p class="goals-message">Nenhuma meta por materia configurada.</p></div>
+                </section>
                 <div class="stats-grid analytics-stats" aria-label="Resumo do periodo analisado">
                     <article class="stat-card stat-card-accent"><span class="stat-label">Total estudado</span><strong id="analytics-total" class="stat-value">--</strong><span id="analytics-range" class="stat-detail">--</span></article>
                     <article class="stat-card"><span class="stat-label">Media por dia</span><strong id="analytics-average" class="stat-value">--</strong><span class="stat-detail">Inclui dias sem estudo</span></article>
@@ -154,6 +158,10 @@
                 <section class="settings-panel goals-settings-panel" aria-labelledby="goals-settings-title">
                     <div class="settings-copy"><p class="section-kicker">CONSTANCIA</p><h2 id="goals-settings-title">Metas de estudo</h2><p>Use horas decimais, como 1,5 para uma hora e meia. Coloque zero para desativar uma meta.</p></div>
                     <form id="goals-form" class="settings-form"><label><span>Meta diaria (horas)</span><input id="daily-goal-hours" type="number" min="0" max="24" step="0.25" placeholder="Ex.: 2"><small class="field-note">Tempo que voce quer estudar por dia.</small></label><label><span>Meta semanal (horas)</span><input id="weekly-goal-hours" type="number" min="0" max="168" step="0.5" placeholder="Ex.: 10"><small class="field-note">Tempo total desejado de segunda a domingo.</small></label><button id="save-goals-button" class="button button-primary" type="submit"><span class="icon icon-settings" aria-hidden="true"></span>Salvar metas</button><p id="goals-settings-message" class="settings-message">As metas ficam salvas localmente no banco.</p></form>
+                </section>
+                <section class="settings-panel subject-goals-settings-panel" aria-labelledby="subject-goals-settings-title">
+                    <div class="settings-copy"><p class="section-kicker">FOCO DA SEMANA</p><h2 id="subject-goals-settings-title">Metas por materia ou topico</h2><p>Use o mesmo nome que aparece no grafico de materias e topicos. Ao salvar novamente, a meta existente sera atualizada.</p></div>
+                    <div class="subject-goal-settings-content"><form id="subject-goals-form" class="settings-form"><label><span>Materia ou topico</span><input id="subject-goal-name" type="text" maxlength="256" placeholder="Ex.: Java ou Banco de dados"><small class="field-note">O nome precisa corresponder ao identificador exibido na dashboard.</small></label><label><span>Meta semanal (horas)</span><input id="subject-goal-hours" type="number" min="0.25" max="168" step="0.25" placeholder="Ex.: 5"></label><button class="button button-primary" type="submit"><span class="icon icon-settings" aria-hidden="true"></span>Salvar meta por materia</button><p id="subject-goal-message" class="settings-message">As metas sao calculadas de segunda a domingo.</p></form><div id="settings-subject-goals-list" class="subject-goals-list"><p class="goals-message">Nenhuma meta por materia configurada.</p></div></div>
                 </section>
             </section>
         </main>

@@ -32,6 +32,7 @@ const elements = {
     goalsForm: document.querySelector('#goals-form'),
     goalsMessage: document.querySelector('#goals-message'),
     goalsSettingsMessage: document.querySelector('#goals-settings-message'),
+    settingsSubjectGoalsList: document.querySelector('#settings-subject-goals-list'),
     saveGoalsButton: document.querySelector('#save-goals-button'),
     historyState: document.querySelector('#history-state'),
     historyTableBody: document.querySelector('#history-table-body'),
@@ -54,6 +55,11 @@ const elements = {
     setupGuide: document.querySelector('#setup-guide'),
     sidebarConnection: document.querySelector('#sidebar-connection'),
     subjectChart: document.querySelector('#subject-chart'),
+    subjectGoalHours: document.querySelector('#subject-goal-hours'),
+    subjectGoalMessage: document.querySelector('#subject-goal-message'),
+    subjectGoalName: document.querySelector('#subject-goal-name'),
+    subjectGoalsForm: document.querySelector('#subject-goals-form'),
+    subjectGoalsList: document.querySelector('#subject-goals-list'),
     syncMessage: document.querySelector('#sync-message'),
     trendChart: document.querySelector('#trend-chart'),
     trendChartTitle: document.querySelector('#trend-chart-title'),
@@ -174,6 +180,55 @@ function renderGoals(progress) {
     elements.goalsMessage.textContent = dailyConfigured || weeklyConfigured
         ? `Semana de ${formatDate(progress.weekStart)} a ${formatDate(progress.weekEnd)}.`
         : 'Defina suas metas em Configuracoes para acompanhar seu progresso.';
+}
+
+function renderSubjectGoalRows(container, goals) {
+    container.innerHTML = '';
+    if (!goals.length) {
+        const empty = document.createElement('p');
+        empty.className = 'goals-message';
+        empty.textContent = 'Nenhuma meta por materia configurada.';
+        container.appendChild(empty);
+        return;
+    }
+
+    goals.forEach((goal) => {
+        const row = document.createElement('article');
+        row.className = 'subject-goal-row';
+        const heading = document.createElement('div');
+        heading.className = 'subject-goal-heading';
+        const subject = document.createElement('strong');
+        subject.textContent = goal.subject;
+        const status = document.createElement('span');
+        status.className = goal.goalReached ? 'goal-status goal-status-reached' : 'goal-status';
+        status.textContent = goal.goalReached ? 'Concluida' : `${goal.progressPercentage}%`;
+        heading.append(subject, status);
+        const track = document.createElement('div');
+        track.className = 'goal-progress-track';
+        const fill = document.createElement('div');
+        fill.className = `goal-progress-fill${goal.goalReached ? ' goal-reached' : ''}`;
+        fill.style.setProperty('--goal-size', `${Math.min(goal.progressPercentage, 100)}%`);
+        track.appendChild(fill);
+        const footer = document.createElement('div');
+        footer.className = 'subject-goal-footer';
+        const summary = document.createElement('span');
+        summary.textContent = `${formatMinutes(goal.studiedMinutes)} de ${formatMinutes(goal.weeklyGoalMinutes)} nesta semana`;
+        const remove = document.createElement('button');
+        remove.className = 'icon-button icon-button-small subject-goal-remove';
+        remove.type = 'button';
+        remove.dataset.goalId = goal.id;
+        remove.title = `Remover meta de ${goal.subject}`;
+        remove.setAttribute('aria-label', `Remover meta de ${goal.subject}`);
+        remove.innerHTML = '<span class="icon icon-trash" aria-hidden="true"></span>';
+        footer.append(summary, remove);
+        row.append(heading, track, footer);
+        container.appendChild(row);
+    });
+}
+
+function renderSubjectGoals(goals) {
+    renderSubjectGoalRows(elements.subjectGoalsList, goals);
+    renderSubjectGoalRows(elements.settingsSubjectGoalsList, goals);
 }
 
 function renderWeeks() {
@@ -350,19 +405,21 @@ async function loadDashboard() {
     elements.settingsState.textContent = 'Verificando...';
     elements.analyticsState.textContent = 'Carregando...';
     try {
-        const [weeks, history, settings, analytics, goals, goalProgress] = await Promise.all([
+        const [weeks, history, settings, analytics, goals, goalProgress, subjectGoals] = await Promise.all([
             fetchJson('/sync/weeks'),
             fetchJson('/sync/history'),
             fetchJson('/sync/settings'),
             fetchJson(analyticsUrl()),
             fetchJson('/sync/goals'),
-            fetchJson('/sync/goals/progress')
+            fetchJson('/sync/goals/progress'),
+            fetchJson('/sync/goals/subjects')
         ]);
         state.weeks = weeks;
         state.history = history;
         renderSettings(settings);
         renderGoalsSettings(goals);
         renderGoals(goalProgress);
+        renderSubjectGoals(subjectGoals);
         renderWeeks();
         renderHistory();
         renderAnalytics(analytics);
@@ -411,6 +468,39 @@ async function saveGoals(event) {
     } finally {
         elements.saveGoalsButton.disabled = false;
     }
+}
+
+async function saveSubjectGoal(event) {
+    event.preventDefault();
+    elements.subjectGoalMessage.textContent = 'Salvando meta por materia...';
+    elements.subjectGoalMessage.className = 'muted settings-message';
+    try {
+        const subject = elements.subjectGoalName.value.trim();
+        const weeklyHours = Number(elements.subjectGoalHours.value || 0);
+        const response = await fetch('/sync/goals/subjects', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject, weeklyMinutes: Math.round(weeklyHours * 60) })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Nao foi possivel salvar a meta por materia.');
+        renderSubjectGoals(result);
+        elements.subjectGoalName.value = '';
+        elements.subjectGoalHours.value = '';
+        elements.subjectGoalMessage.textContent = 'Meta por materia salva com sucesso.';
+        elements.subjectGoalMessage.className = 'muted settings-message success-text';
+    } catch (error) {
+        elements.subjectGoalMessage.textContent = error.message;
+        elements.subjectGoalMessage.className = 'muted settings-message error-text';
+    }
+}
+
+async function deleteSubjectGoal(goalId) {
+    const response = await fetch(`/sync/goals/subjects/${goalId}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Nao foi possivel remover a meta por materia.');
+    renderSubjectGoals(await fetchJson('/sync/goals/subjects'));
+    elements.subjectGoalMessage.textContent = 'Meta por materia removida.';
+    elements.subjectGoalMessage.className = 'muted settings-message success-text';
 }
 
 async function saveSettings(event) {
@@ -509,6 +599,21 @@ document.querySelectorAll('[data-view]').forEach((button) => button.addEventList
 elements.refreshButton.addEventListener('click', loadDashboard);
 elements.settingsForm.addEventListener('submit', saveSettings);
 elements.goalsForm.addEventListener('submit', saveGoals);
+elements.subjectGoalsForm.addEventListener('submit', saveSubjectGoal);
+elements.subjectGoalsList.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-goal-id]');
+    if (button) deleteSubjectGoal(button.dataset.goalId).catch((error) => {
+        elements.goalsMessage.textContent = error.message;
+        elements.goalsMessage.className = 'goals-message error-text';
+    });
+});
+elements.settingsSubjectGoalsList.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-goal-id]');
+    if (button) deleteSubjectGoal(button.dataset.goalId).catch((error) => {
+        elements.subjectGoalMessage.textContent = error.message;
+        elements.subjectGoalMessage.className = 'muted settings-message error-text';
+    });
+});
 elements.testClockifyButton.addEventListener('click', testClockifyConnection);
 elements.applyAnalyticsButton.addEventListener('click', loadDashboard);
 elements.analyticsGranularity.addEventListener('change', () => state.analytics && renderAnalytics(state.analytics));

@@ -12,16 +12,21 @@ import com.josev001.study_sync.dto.ApiErrorDto;
 import com.josev001.study_sync.dto.StudyGoalDto;
 import com.josev001.study_sync.dto.StudyGoalProgressDto;
 import com.josev001.study_sync.dto.StudyGoalRequest;
+import com.josev001.study_sync.dto.SubjectGoalProgressDto;
+import com.josev001.study_sync.dto.SubjectGoalRequest;
 import com.josev001.study_sync.client.ClockifyClient;
 import com.josev001.study_sync.service.IntegrationSettingsService;
 import com.josev001.study_sync.service.StudyAnalyticsService;
 import com.josev001.study_sync.service.StudySyncService;
 import com.josev001.study_sync.service.StudyGoalService;
+import com.josev001.study_sync.service.SubjectGoalService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -43,19 +48,22 @@ public class StudySyncController {
     private final StudyAnalyticsService studyAnalyticsService;
     private final ClockifyClient clockifyClient;
     private final StudyGoalService studyGoalService;
+    private final SubjectGoalService subjectGoalService;
 
     public StudySyncController(
             StudySyncService studySyncService,
             IntegrationSettingsService settingsService,
             StudyAnalyticsService studyAnalyticsService,
             ClockifyClient clockifyClient,
-            StudyGoalService studyGoalService
+            StudyGoalService studyGoalService,
+            SubjectGoalService subjectGoalService
     ) {
         this.studySyncService = studySyncService;
         this.settingsService = settingsService;
         this.studyAnalyticsService = studyAnalyticsService;
         this.clockifyClient = clockifyClient;
         this.studyGoalService = studyGoalService;
+        this.subjectGoalService = subjectGoalService;
     }
 
     @PostMapping("/current-week")
@@ -135,6 +143,22 @@ public class StudySyncController {
     @GetMapping("/goals/progress")
     public StudyGoalProgressDto getGoalProgress() {
         return studyGoalService.getProgress();
+    }
+
+    @GetMapping("/goals/subjects")
+    public List<SubjectGoalProgressDto> getSubjectGoalProgress() {
+        return subjectGoalService.getProgress();
+    }
+
+    @PostMapping("/goals/subjects")
+    public List<SubjectGoalProgressDto> saveSubjectGoal(@Valid @RequestBody SubjectGoalRequest request) {
+        return subjectGoalService.save(request);
+    }
+
+    @DeleteMapping("/goals/subjects/{id}")
+    public ResponseEntity<Void> deleteSubjectGoal(@PathVariable Long id) {
+        subjectGoalService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/import")
