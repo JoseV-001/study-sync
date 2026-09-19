@@ -1,6 +1,6 @@
 # Study Sync
 
-Sincroniza as horas estudadas no Clockify com o registro semanal do Notion.
+Importa estudos do Clockify, guarda tudo localmente e mostra seu progresso em uma dashboard. O Notion e opcional.
 
 ## Como funciona
 
@@ -47,36 +47,46 @@ O endpoint `/sync/week` aceita qualquer data da semana; o sistema encontra autom
 Para usar o executável no Windows, você precisa de:
 
 - Windows 10 ou superior.
-- PostgreSQL instalado e em execução.
-- Um banco chamado `study_sync`.
-- Um usuário do PostgreSQL com permissão para criar e atualizar tabelas.
 - Uma chave da API do Clockify para concluir a configuracao inicial.
 
-Java e Maven não são necessários para usar o executável portátil. Eles só são necessários para executar o código-fonte ou gerar um novo pacote.
+Nao e necessario instalar Java, Maven ou PostgreSQL para usar o executavel portatil. Eles so sao necessarios para executar o codigo-fonte ou gerar um novo pacote.
 
 O Notion é opcional. A integração atual depende de um modelo específico de workspace e funciona no ambiente original do projeto, mas ainda não é compatível com workspaces de outras pessoas. Sem a chave do Notion, o sistema continua importando, analisando e armazenando os estudos localmente.
 
 ## Configuração
 
-### PostgreSQL
+### Banco local
 
-O projeto usa PostgreSQL para manter os estudos, o resumo semanal e o histórico das sincronizações. O serviço precisa estar iniciado antes de abrir a aplicação. Para subir o banco localmente com Docker:
+Por padrao, o Study Sync usa SQLite. O arquivo do banco e criado automaticamente em:
 
 ```text
-docker compose up -d postgres
+%USERPROFILE%\.study-sync\study-sync.db
 ```
 
-Configure a conexão com variáveis de ambiente. Os valores esperados são:
+Esse arquivo guarda estudos, metas, integracoes e historico. Para usar outra pasta, defina a variavel de ambiente abaixo antes de iniciar:
 
 ```text
+STUDY_SYNC_DATA_DIR=C:\caminho\para\seus-dados
+```
+
+As tabelas sao criadas e atualizadas automaticamente pelo Flyway na inicializacao.
+
+### PostgreSQL avancado
+
+O PostgreSQL continua disponivel para desenvolvimento ou instalacoes que precisem dele. Ative o perfil `postgresql` e configure:
+
+```text
+SPRING_PROFILES_ACTIVE=postgresql
 DATABASE_URL=jdbc:postgresql://localhost:5432/study_sync
 DATABASE_USERNAME=study_sync
 DATABASE_PASSWORD=sua_senha_do_postgresql
 ```
 
-As tabelas são criadas e atualizadas automaticamente pelo Flyway na inicialização da aplicação.
+Para subir um banco de desenvolvimento com Docker:
 
-Se você usar outro endereço, banco, usuário ou senha, defina `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` antes de iniciar. A senha deve ser a senha do usuário do PostgreSQL configurado no seu computador.
+```text
+docker compose up -d postgres
+```
 
 ### Clockify e Notion
 
@@ -109,13 +119,11 @@ study-sync.sync-on-startup=true
 
 ### Executável portátil no Windows
 
-1. Inicie o serviço do PostgreSQL.
-2. Configure `DATABASE_PASSWORD` nas variáveis de ambiente do Windows.
-3. Abra `dist\\StudySync\\StudySync.exe` com duplo clique.
-4. Na primeira abertura, conecte sua conta do Clockify pelo assistente.
-5. Acesse `http://localhost:8080/` quando a aplicação estiver pronta.
+1. Abra `dist\\StudySync\\StudySync.exe` com duplo clique.
+2. Na primeira abertura, conecte sua conta do Clockify pelo assistente.
+3. Acesse `http://localhost:8080/` quando a aplicacao estiver pronta.
 
-O executável já inclui o Java e não exige Maven. Ele ainda depende do PostgreSQL local e das configurações de ambiente descritas acima.
+O executavel inclui o Java e o SQLite. Nenhum banco externo e necessario.
 
 ### Código-fonte
 
@@ -125,10 +133,10 @@ Para iniciar localmente:
 ./mvnw spring-boot:run
 ```
 
-No Windows, também é possível iniciar com duplo clique em `start-study-sync.bat`. O script verifica o PostgreSQL, compila o JAR na primeira execução, inicia a aplicação e abre a dashboard automaticamente.
+No Windows, tambem e possivel iniciar com duplo clique em `start-study-sync.bat`. O script compila o JAR na primeira execucao, inicia a aplicacao e abre a dashboard automaticamente.
 
 Com a aplicação iniciada, abra `http://localhost:8080/` para acessar a dashboard. Ela mostra as semanas salvas, o histórico das execuções e permite disparar manualmente a sincronização da semana atual ou anterior.
 
-Se o sistema não abrir, confira primeiro se o PostgreSQL está em execução e se `DATABASE_PASSWORD` corresponde ao usuário configurado no banco.
+Se o sistema nao abrir, confira se a pasta configurada em `STUDY_SYNC_DATA_DIR` permite criacao de arquivos. Sem essa variavel, o sistema usa a pasta local do seu usuario.
 
-Para gerar uma versão nativa portátil com Java incluído, execute `package-study-sync.ps1`. O executável será criado em `dist\StudySync\StudySync.exe`. Essa distribuição não exige Maven nem Java instalado no computador de destino, mas ainda utiliza o PostgreSQL local.
+Para gerar uma versao nativa portatil com Java incluido, execute `package-study-sync.ps1`. O executavel sera criado em `dist\StudySync\StudySync.exe` e funcionara sem PostgreSQL no computador de destino.

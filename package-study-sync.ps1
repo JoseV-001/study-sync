@@ -45,7 +45,7 @@ Write-Host 'Gerando o pacote executavel...' -ForegroundColor Cyan
     --dest $outputPath `
     --app-version 1.0.0 `
     --vendor 'JoseV-001' `
-    --description 'Study Sync - Clockify para Notion' `
+    --description 'Study Sync - local study dashboard' `
     --java-options '-Dstudy-sync.sync-on-startup=false' `
     --java-options '-Dstudy-sync.open-browser=true'
 

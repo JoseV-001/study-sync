@@ -2,7 +2,6 @@ $ErrorActionPreference = 'Stop'
 
 $projectPath = $PSScriptRoot
 $jarPath = Join-Path $projectPath 'target\study-sync-0.0.1-SNAPSHOT.jar'
-$serviceName = 'postgresql-x64-18'
 
 Set-Location $projectPath
 
@@ -18,15 +17,6 @@ function Show-Failure($message) {
 }
 
 try {
-    $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
-    if (-not $service) {
-        Show-Failure "o servico do PostgreSQL '$serviceName' nao foi encontrado"
-    }
-    if ($service.Status -ne 'Running') {
-        Start-Service -Name $serviceName
-        $service.WaitForStatus('Running', [TimeSpan]::FromSeconds(20))
-    }
-
     if (-not (Test-Path -LiteralPath $jarPath)) {
         Write-Host 'Primeira execucao: compilando a aplicacao...' -ForegroundColor Cyan
         $maven = (Get-Command mvn -ErrorAction SilentlyContinue).Source
@@ -42,9 +32,6 @@ try {
         }
     }
 
-    if (-not $env:DATABASE_PASSWORD) {
-        Show-Failure 'DATABASE_PASSWORD nao esta configurada nas variaveis de ambiente do Windows'
-    }
     $env:SPRING_APPLICATION_JSON = '{"study-sync":{"sync-on-startup":false}}'
 
     Write-Host 'Study Sync iniciado. Abrindo http://localhost:8080/' -ForegroundColor Green
