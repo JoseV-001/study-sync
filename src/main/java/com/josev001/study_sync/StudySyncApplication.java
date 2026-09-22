@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.context.event.EventListener;
 
-import java.awt.Desktop;
 import java.net.URI;
 
 
@@ -22,20 +21,19 @@ public class StudySyncApplication {
     private boolean openBrowser;
 
     public static void main(String[] args) {
+        if (DesktopLauncher.reuseRunningApplication(args)) return;
         SpringApplication.run(StudySyncApplication.class, args);
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    void openDashboardWhenConfigured() {
-        if (!openBrowser || !Desktop.isDesktopSupported()) {
+    void openDashboardWhenConfigured(ApplicationReadyEvent event) {
+        if (!openBrowser) {
             return;
         }
 
-        try {
-            Desktop.getDesktop().browse(URI.create("http://localhost:8080/"));
-        } catch (Exception exception) {
-            // Opening a browser is a convenience and must not prevent the app from running.
-        }
+        int port = event.getApplicationContext().getEnvironment()
+                .getProperty("local.server.port", Integer.class, 8080);
+        DesktopLauncher.openBrowser(URI.create("http://localhost:" + port + "/"));
     }
 
 }

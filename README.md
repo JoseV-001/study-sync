@@ -128,6 +128,10 @@ study-sync.sync-on-startup=true
 
 O executavel inclui o Java e o SQLite. Nenhum banco externo e necessario.
 
+Se o Study Sync ja estiver rodando (inclusive pelo inicio automatico do Windows),
+abrir o executavel novamente apenas abre a dashboard existente no navegador.
+Use o executavel de `release\StudySync`; a pasta `dist` pertence aos pacotes antigos.
+
 ### Backup e exportacao
 
 Na aba **Configuracoes**, a secao **Backup e exportacao** permite:

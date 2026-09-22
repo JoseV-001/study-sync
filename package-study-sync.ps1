@@ -31,8 +31,15 @@ if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $jarPath)) {
 }
 
 New-Item -ItemType Directory -Path $outputPath -Force | Out-Null
+$inputPath = Join-Path $projectPath 'target\desktop-input'
+New-Item -ItemType Directory -Path $inputPath -Force | Out-Null
+Copy-Item -LiteralPath $jarPath -Destination (Join-Path $inputPath $jarName) -Force
 $appImagePath = Join-Path $outputPath 'StudySync'
 if (Test-Path -LiteralPath $appImagePath) {
+    $resolvedImage = (Resolve-Path -LiteralPath $appImagePath).Path
+    if ($resolvedImage -ne [System.IO.Path]::GetFullPath((Join-Path $projectPath 'release\StudySync'))) {
+        throw 'Caminho de pacote inesperado.'
+    }
     Remove-Item -LiteralPath $appImagePath -Recurse -Force
 }
 
@@ -40,12 +47,13 @@ Write-Host 'Gerando o pacote executavel...' -ForegroundColor Cyan
 & $jpackagePath `
     --type app-image `
     --name StudySync `
-    --input (Join-Path $projectPath 'target') `
+    --input $inputPath `
     --main-jar $jarName `
     --dest $outputPath `
     --app-version 1.0.0 `
     --vendor 'JoseV-001' `
     --description 'Study Sync - local study dashboard' `
+    --java-options '-Dstudy-sync.desktop=true' `
     --java-options '-Dstudy-sync.sync-on-startup=false' `
     --java-options '-Dstudy-sync.schedule.enabled=false' `
     --java-options '-Dstudy-sync.open-browser=true'
