@@ -179,6 +179,21 @@ public class StudySyncService {
     @Transactional
     public StudyImportDto importStudyEntries(LocalDate from, LocalDate to) {
         List<TimeEntryDto> entries = clockifyService.getStudyEntries(from, to);
+        return storeImportedEntries(entries, from, to);
+    }
+
+    @Transactional
+    public StudyImportDto importAllStudyEntries() {
+        List<TimeEntryDto> entries = clockifyService.getAllStudyEntries();
+        LocalDate today = LocalDate.now(APP_ZONE);
+        LocalDate from = entries.stream()
+                .map(entry -> Instant.parse(entry.timeInterval().start()).atZone(APP_ZONE).toLocalDate())
+                .min(LocalDate::compareTo)
+                .orElse(today);
+        return storeImportedEntries(entries, from, today);
+    }
+
+    private StudyImportDto storeImportedEntries(List<TimeEntryDto> entries, LocalDate from, LocalDate to) {
         StudyEntryStoreResult result = studyEntryService.storeEntriesDetailed(entries);
         long totalMinutes = clockifyService.getTotalStudyTime(entries).toMinutes();
         return new StudyImportDto(

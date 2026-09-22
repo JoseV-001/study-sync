@@ -53,6 +53,8 @@ const elements = {
     periodHours: document.querySelector('#period-hours'),
     periodRange: document.querySelector('#period-range'),
     previousWeekButton: document.querySelector('#previous-week-button'),
+    importAllButton: document.querySelector('#import-all-button'),
+    importAllLabel: document.querySelector('#import-all-label'),
     refreshButton: document.querySelector('#refresh-button'),
     restoreBackupButton: document.querySelector('#restore-backup-button'),
     restoreBackupInput: document.querySelector('#restore-backup-input'),
@@ -668,8 +670,43 @@ async function testClockifyConnection() {
     }
 }
 
+function setSyncBusy(busy) {
+    [elements.importAllButton, elements.importAnalyticsButton, elements.previousWeekButton,
+        elements.currentWeekButton, elements.refreshButton].forEach((button) => { button.disabled = busy; });
+}
+
+async function importAllHistory() {
+    setSyncBusy(true);
+    elements.importAllButton.setAttribute('aria-busy', 'true');
+    elements.importAllLabel.textContent = 'Importando...';
+    elements.syncMessage.textContent = 'Importando todo o historico do Clockify. Aguarde...';
+    elements.syncMessage.className = 'muted';
+    try {
+        const response = await fetch('/sync/import/all', { method: 'POST' });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Nao foi possivel importar o historico.');
+        const processed = result.createdEntries + result.updatedEntries;
+        if (processed > 0) {
+            elements.analyticsFrom.value = result.from;
+            elements.analyticsTo.value = result.to;
+            document.querySelectorAll('.filter-button').forEach((button) => button.classList.remove('active'));
+            elements.syncMessage.textContent = `Historico importado: ${processed} registros, ${result.createdEntries} novos e ${result.updatedEntries} atualizados. Total: ${formatMinutes(result.totalMinutes)} desde ${formatDate(result.from)}.`;
+        } else {
+            elements.syncMessage.textContent = 'Nenhum registro finalizado encontrado no Clockify.';
+        }
+        await loadDashboard();
+    } catch (error) {
+        elements.syncMessage.textContent = error.message;
+        elements.syncMessage.className = 'muted error-text';
+    } finally {
+        elements.importAllLabel.textContent = 'Importar tudo';
+        elements.importAllButton.setAttribute('aria-busy', 'false');
+        setSyncBusy(false);
+    }
+}
+
 async function importAnalyticsPeriod() {
-    elements.importAnalyticsButton.disabled = true;
+    setSyncBusy(true);
     const startedAt = performance.now();
     elements.analyticsMessage.textContent = 'Consultando registros do Clockify...';
     elements.analyticsMessage.classList.remove('error-text');
@@ -679,20 +716,19 @@ async function importAnalyticsPeriod() {
         const result = await response.json();
         if (!response.ok) throw new Error(result.message || 'Nao foi possivel importar o periodo.');
         const elapsedSeconds = Math.max(1, Math.round((performance.now() - startedAt) / 1000));
-        const processed = result.processedEntries;
+        const processed = result.createdEntries + result.updatedEntries;
         elements.analyticsMessage.textContent = `${processed} registro${processed === 1 ? '' : 's'} processado${processed === 1 ? '' : 's'} em ${elapsedSeconds}s: ${result.createdEntries} novo${result.createdEntries === 1 ? '' : 's'}, ${result.updatedEntries} atualizado${result.updatedEntries === 1 ? '' : 's'} e ${result.skippedEntries} ignorado${result.skippedEntries === 1 ? '' : 's'}. Total: ${formatMinutes(result.totalMinutes)}.`;
         await loadDashboard();
     } catch (error) {
         elements.analyticsMessage.textContent = error.message;
         elements.analyticsMessage.classList.add('error-text');
     } finally {
-        elements.importAnalyticsButton.disabled = false;
+        setSyncBusy(false);
     }
 }
 
 async function runSync(url, label) {
-    const buttons = [elements.previousWeekButton, elements.currentWeekButton, elements.refreshButton];
-    buttons.forEach((button) => { button.disabled = true; });
+    setSyncBusy(true);
     elements.syncMessage.textContent = `${label} em andamento...`;
     elements.syncMessage.className = 'muted';
     try {
@@ -705,7 +741,7 @@ async function runSync(url, label) {
         elements.syncMessage.textContent = error.message;
         elements.syncMessage.className = 'muted error-text';
     } finally {
-        buttons.forEach((button) => { button.disabled = false; });
+        setSyncBusy(false);
     }
 }
 
@@ -755,6 +791,7 @@ elements.restoreBackupInput.addEventListener('change', restoreBackup);
 elements.applyAnalyticsButton.addEventListener('click', loadDashboard);
 elements.analyticsGranularity.addEventListener('change', () => state.analytics && renderAnalytics(state.analytics));
 elements.importAnalyticsButton.addEventListener('click', importAnalyticsPeriod);
+elements.importAllButton.addEventListener('click', importAllHistory);
 document.querySelectorAll('.filter-button').forEach((button) => button.addEventListener('click', () => applyQuickFilter(Number(button.dataset.days), button)));
 elements.previousWeekButton.addEventListener('click', () => runSync('/sync/previous-week', 'Sincronizacao da semana anterior'));
 elements.currentWeekButton.addEventListener('click', () => runSync('/sync/current-week', 'Sincronizacao da semana atual'));

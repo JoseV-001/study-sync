@@ -38,6 +38,11 @@ public class ClockifyService {
         return getTotalStudyTime(getStudyEntries(startOfWeek, startOfWeek.plusDays(6)));
     }
 
+    public List<TimeEntryDto> getAllStudyEntries() {
+        // An explicit start avoids Clockify's default recent-history window.
+        return getStudyEntries(LocalDate.of(1970, 1, 1), LocalDate.now(APP_ZONE));
+    }
+
     public List<TimeEntryDto> getStudyEntries(LocalDate from, LocalDate to) {
         if (to.isBefore(from)) {
             throw new IllegalArgumentException("The end date must not be before the start date");

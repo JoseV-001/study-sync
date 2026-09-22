@@ -213,6 +213,15 @@ public class StudySyncController {
         }
     }
 
+    @PostMapping("/import/all")
+    public ResponseEntity<?> importAllStudyEntries() {
+        try {
+            return ResponseEntity.ok(studySyncService.importAllStudyEntries());
+        } catch (IllegalStateException exception) {
+            return ResponseEntity.badRequest().body(new ApiErrorDto(exception.getMessage()));
+        }
+    }
+
     @GetMapping("/analytics")
     public StudyAnalyticsDto getAnalytics(
             @RequestParam(required = false)

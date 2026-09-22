@@ -29,6 +29,8 @@ Para trazer os registros detalhados do Clockify para um período, use:
 POST http://localhost:8080/sync/import?from=2026-08-17&to=2026-09-15
 ```
 
+Para importar todo o historico, abra **Sincronizacoes > Importar tudo** ou use `POST /sync/import/all`. O sistema busca todas as paginas de registros finalizados do usuario no workspace conectado, sem precisar escolher datas. Registros existentes sao atualizados pelo ID, sem duplicacao. Ao concluir, o filtro da dashboard passa a incluir desde o primeiro estudo encontrado ate hoje. Essa importacao preenche os graficos locais; nao envia o historico inteiro ao Notion nem cria sincronizacoes semanais retroativas.
+
 A dashboard oferece os mesmos controles, com filtros de 7, 30 e 90 dias ou intervalo personalizado. Ela mostra totais e média diária, dias ativos, dias da semana com mais e menos estudo, horário de maior foco, matérias e tópicos mais estudados e gráficos por dia, semana, mês, horário, dia da semana e matéria. A importação solicita todos os registros do período ao Clockify, inclusive quando há mais de uma página de resultados.
 
 Para identificar a matéria, o sistema resolve os nomes reais do Clockify e usa, nesta ordem: tópico (tarefa), tags, descrição e projeto. Identificadores internos não são exibidos. Reimporte um período já salvo para atualizar os registros antigos com os nomes resolvidos.
