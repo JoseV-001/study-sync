@@ -76,8 +76,12 @@ public class IntegrationSettingsService {
                 hasText(getClockifyApiKey())
                         && hasText(getClockifyUserId())
                         && hasText(getClockifyWorkspaceId()),
-                hasText(getNotionApiKey()) && hasText(getNotionDataSourceId())
+                isNotionConfigured()
         );
+    }
+
+    public boolean isNotionConfigured() {
+        return hasText(getNotionApiKey()) && hasText(getNotionDataSourceId());
     }
 
     @Transactional

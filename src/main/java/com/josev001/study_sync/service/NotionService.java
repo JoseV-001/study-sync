@@ -23,8 +23,7 @@ public class NotionService {
     }
 
     public boolean isConfigured() {
-        String apiKey = settingsService.getNotionApiKey();
-        return apiKey != null && !apiKey.isBlank();
+        return settingsService.isNotionConfigured();
     }
 
     public String updateCurrentWeekStudyTime(Duration totalStudyTime) {
