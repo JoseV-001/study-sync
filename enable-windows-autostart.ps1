@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $projectPath = $PSScriptRoot
-$defaultExecutable = Join-Path $projectPath 'dist\StudySync\StudySync.exe'
+$defaultExecutable = Join-Path $projectPath 'release\StudySync\StudySync.exe'
 $executablePath = if ($env:STUDY_SYNC_EXECUTABLE) { $env:STUDY_SYNC_EXECUTABLE } else { $defaultExecutable }
 $dashboardTaskName = 'Study Sync - Dashboard'
 $weeklyTaskName = 'Study Sync - Weekly Sync'

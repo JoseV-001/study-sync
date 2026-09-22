@@ -122,7 +122,7 @@ study-sync.sync-on-startup=true
 
 ### Executável portátil no Windows
 
-1. Abra `dist\\StudySync\\StudySync.exe` com duplo clique.
+1. Abra `release\\StudySync\\StudySync.exe` com duplo clique.
 2. Na primeira abertura, conecte sua conta do Clockify pelo assistente.
 3. Acesse `http://localhost:8080/` quando a aplicacao estiver pronta.
 
@@ -145,7 +145,7 @@ Depois de gerar o executavel, abra `enable-windows-autostart.bat` com duplo cliq
 - inicia a dashboard silenciosamente quando voce entra no Windows;
 - executa uma sincronizacao sem abrir o navegador toda segunda-feira as 20:00 e encerra ao terminar.
 
-Para remover as tarefas, abra `disable-windows-autostart.bat`. Os arquivos usam o executavel em `dist\StudySync\StudySync.exe`; se voce mover o pacote, execute novamente o arquivo de ativacao na nova pasta.
+Para remover as tarefas, abra `disable-windows-autostart.bat`. Os arquivos usam o executavel em `release\StudySync\StudySync.exe`; se voce mover o pacote, execute novamente o arquivo de ativacao na nova pasta.
 
 ### Código-fonte
 
@@ -161,4 +161,4 @@ Com a aplicação iniciada, abra `http://localhost:8080/` para acessar a dashboa
 
 Se o sistema nao abrir, confira se a pasta configurada em `STUDY_SYNC_DATA_DIR` permite criacao de arquivos. Sem essa variavel, o sistema usa a pasta local do seu usuario.
 
-Para gerar uma versao nativa portatil com Java incluido, execute `package-study-sync.ps1`. O executavel sera criado em `dist\StudySync\StudySync.exe` e funcionara sem PostgreSQL no computador de destino.
+Para gerar uma versao nativa portatil com Java incluido, execute `package-study-sync.ps1`. O executavel sera criado em `release\StudySync\StudySync.exe` e funcionara sem PostgreSQL no computador de destino.

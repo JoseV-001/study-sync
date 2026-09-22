@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $projectPath = $PSScriptRoot
 $jarName = 'study-sync-0.0.1-SNAPSHOT.jar'
 $jarPath = Join-Path $projectPath "target\$jarName"
-$outputPath = Join-Path $projectPath 'dist'
+$outputPath = Join-Path $projectPath 'release'
 $java21Path = 'C:\Program Files\Java\jdk-21\bin'
 $jpackagePath = Join-Path $java21Path 'jpackage.exe'
 

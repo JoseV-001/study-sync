@@ -2,6 +2,7 @@ HELP.md
 target/
 .m2/
 dist/
+release/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
