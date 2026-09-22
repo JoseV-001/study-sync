@@ -733,9 +733,11 @@ async function runSync(url, label) {
     elements.syncMessage.className = 'muted';
     try {
         const response = await fetch(url, { method: 'POST' });
-        if (!response.ok) throw new Error('A sincronizacao falhou.');
-        const result = await response.json();
-        elements.syncMessage.textContent = `Sincronizacao concluida: ${result.syncedTime || '--'}.`;
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.message || 'A sincronizacao falhou.');
+        elements.syncMessage.textContent = result.notionUpdated
+            ? `Notion pessoal atualizado com sucesso: ${result.syncedTime || '--'}.`
+            : `Semana salva apenas na dashboard: ${result.syncedTime || '--'}. O Notion pessoal nao esta configurado.`;
         await loadDashboard();
     } catch (error) {
         elements.syncMessage.textContent = error.message;

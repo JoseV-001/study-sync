@@ -56,11 +56,11 @@ public class IntegrationSettingsService {
     }
 
     public String getNotionDateProperty() {
-        return getSettingValue(NOTION_DATE_PROPERTY, "Data inicio");
+        return getSettingValue(NOTION_DATE_PROPERTY, "Data início");
     }
 
     public String getNotionHoursProperty() {
-        return getSettingValue(NOTION_HOURS_PROPERTY, "Horas estudadas");
+        return getSettingValue(NOTION_HOURS_PROPERTY, "Horas na semana (Registro apartir de 20/07)");
     }
 
     public String getClockifyUserId() {

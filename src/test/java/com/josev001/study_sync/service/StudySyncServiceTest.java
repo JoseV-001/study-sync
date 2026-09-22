@@ -66,6 +66,7 @@ class StudySyncServiceTest {
         assertThat(result.weekStartDate()).isEqualTo(monday);
         assertThat(result.weekEndDate()).isEqualTo(monday.plusDays(6));
         assertThat(result.syncedTime()).isEqualTo("12:35H");
+        assertThat(result.notionUpdated()).isTrue();
         verify(studyEntryService).storeEntries(entries);
         verify(notionService).updateWeekStudyTime(monday, total);
     }
@@ -83,6 +84,7 @@ class StudySyncServiceTest {
         SyncResultDto result = studySyncService.syncWeek(monday);
 
         assertThat(result.syncedTime()).isEqualTo("5:20H");
+        assertThat(result.notionUpdated()).isFalse();
         verify(studyEntryService).storeEntries(entries);
         verify(notionService, never()).updateWeekStudyTime(monday, total);
         verify(notionService).formatStudyTime(total);

@@ -118,7 +118,8 @@ public class StudySyncService {
             List<TimeEntryDto> entries = clockifyService.getStudyEntries(startOfWeek, startOfWeek.plusDays(6));
             studyEntryService.storeEntries(entries);
             Duration totalStudyTime = clockifyService.getTotalStudyTime(entries);
-            String syncedTime = notionService.isConfigured()
+            boolean notionUpdated = notionService.isConfigured();
+            String syncedTime = notionUpdated
                     ? notionService.updateWeekStudyTime(startOfWeek, totalStudyTime)
                     : notionService.formatStudyTime(totalStudyTime);
             long totalMinutes = totalStudyTime.toMinutes();
@@ -138,7 +139,7 @@ public class StudySyncService {
             syncRun.markSuccess(totalMinutes, syncedAt);
             syncRunRepository.save(syncRun);
 
-            return new SyncResultDto(startOfWeek, startOfWeek.plusDays(6), syncedTime);
+            return new SyncResultDto(startOfWeek, startOfWeek.plusDays(6), syncedTime, notionUpdated);
         } catch (RuntimeException exception) {
             syncRun.markFailed(exception.getMessage(), Instant.now());
             syncRunRepository.save(syncRun);

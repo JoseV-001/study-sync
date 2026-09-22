@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class IntegrationSettingsServiceTest {
@@ -34,7 +35,7 @@ class IntegrationSettingsServiceTest {
     void setUp() {
         when(appSettingRepository.findById(anyString()))
                 .thenAnswer(invocation -> Optional.ofNullable(settings.get(invocation.getArgument(0))));
-        when(appSettingRepository.save(any(AppSetting.class)))
+        lenient().when(appSettingRepository.save(any(AppSetting.class)))
                 .thenAnswer(invocation -> {
                     AppSetting setting = invocation.getArgument(0);
                     settings.put(setting.getKey(), setting);
@@ -59,5 +60,12 @@ class IntegrationSettingsServiceTest {
         assertThat(service.getClockifyApiKey()).isEqualTo("clockify-key");
         assertThat(service.getClockifyUserId()).isEqualTo("clockify-user");
         assertThat(service.getClockifyWorkspaceId()).isEqualTo("clockify-workspace");
+    }
+
+    @Test
+    void usesThePersonalNotionSchemaAsTheDefault() {
+        assertThat(service.getNotionDateProperty()).isEqualTo("Data início");
+        assertThat(service.getNotionHoursProperty())
+                .isEqualTo("Horas na semana (Registro apartir de 20/07)");
     }
 }

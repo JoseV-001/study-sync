@@ -53,7 +53,7 @@ Para usar o executável no Windows, você precisa de:
 
 Nao e necessario instalar Java, Maven ou PostgreSQL para usar o executavel portatil. Eles so sao necessarios para executar o codigo-fonte ou gerar um novo pacote.
 
-O Notion é opcional. Sem ele, o sistema continua importando, analisando e armazenando os estudos localmente.
+O Notion é opcional. Sem ele, o sistema continua importando, analisando e armazenando os estudos localmente. A sincronizacao atual do Notion foi feita para o modelo pessoal de Jose Victor e depende dos nomes das colunas desse workspace; por isso, essa opcao ainda nao e oferecida como recurso geral para outros usuarios.
 
 ## Configuração
 

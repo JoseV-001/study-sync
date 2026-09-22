@@ -5,6 +5,7 @@ import java.time.LocalDate;
 public record SyncResultDto(
         LocalDate weekStartDate,
         LocalDate weekEndDate,
-        String syncedTime
+        String syncedTime,
+        boolean notionUpdated
 ) {
 }

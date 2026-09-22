@@ -47,7 +47,9 @@ class NotionConfigurationTest {
         when(clockify.getTotalStudyTime(List.of())).thenReturn(Duration.ofMinutes(123));
         StudySyncService service = new StudySyncService(clockify, notion, weeks, runs, entries);
 
-        assertThat(service.syncWeek(monday, "test").syncedTime()).isEqualTo("2:03H");
+        var result = service.syncWeek(monday, "test");
+        assertThat(result.syncedTime()).isEqualTo("2:03H");
+        assertThat(result.notionUpdated()).isFalse();
 
         verify(entries).storeEntries(List.of());
         verify(weeks).save(argThat((WeeklyStudy week) -> week.getTotalMinutes() == 123));

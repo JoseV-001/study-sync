@@ -76,22 +76,22 @@ public class StudySyncController {
     }
 
     @PostMapping("/current-week")
-    public SyncResultDto syncCurrentWeek() {
-        return studySyncService.syncCurrentWeek();
+    public ResponseEntity<?> syncCurrentWeek() {
+        return syncWeekResponse(studySyncService::syncCurrentWeek);
     }
 
     @PostMapping("/previous-week")
-    public SyncResultDto syncPreviousWeek() {
-        return studySyncService.syncPreviousWeek();
+    public ResponseEntity<?> syncPreviousWeek() {
+        return syncWeekResponse(studySyncService::syncPreviousWeek);
     }
 
     @PostMapping("/week")
-    public SyncResultDto syncWeek(
+    public ResponseEntity<?> syncWeek(
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate startDate
     ) {
-        return studySyncService.syncWeek(startDate);
+        return syncWeekResponse(() -> studySyncService.syncWeek(startDate));
     }
 
     @GetMapping("/history")
@@ -132,7 +132,18 @@ public class StudySyncController {
             return ResponseEntity.ok(settingsService.saveSettings(request));
         } catch (RuntimeException exception) {
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                    .body(new ApiErrorDto("Nao foi possivel atualizar o Clockify. Confira a chave e tente novamente."));
+                    .body(new ApiErrorDto("Nao foi possivel salvar as integracoes. Confira os dados e tente novamente."));
+        }
+    }
+
+    private ResponseEntity<?> syncWeekResponse(java.util.function.Supplier<SyncResultDto> sync) {
+        try {
+            return ResponseEntity.ok(sync.get());
+        } catch (RuntimeException exception) {
+            String message = hasText(exception.getMessage())
+                    ? exception.getMessage()
+                    : "Nao foi possivel concluir a sincronizacao.";
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(new ApiErrorDto(message));
         }
     }
 
