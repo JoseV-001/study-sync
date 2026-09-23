@@ -108,6 +108,15 @@ public class StudyEntryService {
         return studyEntryRepository.findByStartedAtLessThanAndEndedAtGreaterThan(rangeEnd, rangeStart);
     }
 
+    @Transactional(readOnly = true)
+    public List<String> getKnownSubjects() {
+        return studyEntryRepository.findDistinctSubjects().stream()
+                .map(String::trim)
+                .distinct()
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+    }
+
     private boolean isCompletedEntry(TimeEntryDto entry) {
         return entry != null
                 && entry.id() != null

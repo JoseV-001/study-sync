@@ -111,4 +111,16 @@ class StudyEntryServiceTest {
         assertThat(existing.getSubject()).isEqualTo("Java");
         verify(studyEntryRepository, never()).save(existing);
     }
+
+    @Test
+    void listsKnownSubjectsInCaseInsensitiveOrder() {
+        when(studyEntryRepository.findDistinctSubjects()).thenReturn(
+                List.of(" NoSQL ", "Algoritmos", "Java")
+        );
+
+        List<String> subjects = new StudyEntryService(studyEntryRepository, clockifyMetadataService)
+                .getKnownSubjects();
+
+        assertThat(subjects).containsExactly("Algoritmos", "Java", "NoSQL");
+    }
 }

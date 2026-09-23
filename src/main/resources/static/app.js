@@ -1,4 +1,4 @@
-const state = { weeks: [], history: [], analytics: null, setupWasOpened: false };
+const state = { weeks: [], history: [], analytics: null, knownSubjects: [], setupWasOpened: false };
 
 const elements = {
     analyticsActiveDays: document.querySelector('#analytics-active-days'),
@@ -76,6 +76,7 @@ const elements = {
     subjectGoalHours: document.querySelector('#subject-goal-hours'),
     subjectGoalMessage: document.querySelector('#subject-goal-message'),
     subjectGoalName: document.querySelector('#subject-goal-name'),
+    subjectGoalOptions: document.querySelector('#subject-goal-options'),
     subjectGoalsForm: document.querySelector('#subject-goals-form'),
     subjectGoalsList: document.querySelector('#subject-goals-list'),
     syncMessage: document.querySelector('#sync-message'),
@@ -431,6 +432,14 @@ function analyticsUrl() {
     return `/sync/analytics?${params}`;
 }
 
+function renderSubjectGoalOptions(subjects) {
+    elements.subjectGoalOptions.replaceChildren(...subjects.map((subject) => {
+        const option = document.createElement('option');
+        option.value = subject;
+        return option;
+    }));
+}
+
 async function loadDashboard() {
     elements.lastRefresh.textContent = 'Atualizando...';
     elements.weeksState.textContent = 'Carregando...';
@@ -438,21 +447,24 @@ async function loadDashboard() {
     elements.settingsState.textContent = 'Verificando...';
     elements.analyticsState.textContent = 'Carregando...';
     try {
-        const [weeks, history, settings, analytics, goals, goalProgress, subjectGoals] = await Promise.all([
+        const [weeks, history, settings, analytics, goals, goalProgress, subjectGoals, knownSubjects] = await Promise.all([
             fetchJson('/sync/weeks'),
             fetchJson('/sync/history'),
             fetchJson('/sync/settings'),
             fetchJson(analyticsUrl()),
             fetchJson('/sync/goals'),
             fetchJson('/sync/goals/progress'),
-            fetchJson('/sync/goals/subjects')
+            fetchJson('/sync/goals/subjects'),
+            fetchJson('/sync/subjects')
         ]);
         state.weeks = weeks;
         state.history = history;
+        state.knownSubjects = knownSubjects;
         renderSettings(settings, true);
         renderGoalsSettings(goals);
         renderGoals(goalProgress);
         renderSubjectGoals(subjectGoals);
+        renderSubjectGoalOptions(knownSubjects);
         renderWeeks();
         renderHistory();
         renderAnalytics(analytics);

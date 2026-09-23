@@ -22,6 +22,7 @@ import com.josev001.study_sync.service.IntegrationSettingsService;
 import com.josev001.study_sync.service.StudyAnalyticsService;
 import com.josev001.study_sync.service.StudySyncService;
 import com.josev001.study_sync.service.StudyGoalService;
+import com.josev001.study_sync.service.StudyEntryService;
 import com.josev001.study_sync.service.SubjectGoalService;
 import com.josev001.study_sync.service.BackupService;
 import jakarta.validation.Valid;
@@ -54,6 +55,7 @@ public class StudySyncController {
     private final StudyAnalyticsService studyAnalyticsService;
     private final ClockifyClient clockifyClient;
     private final StudyGoalService studyGoalService;
+    private final StudyEntryService studyEntryService;
     private final SubjectGoalService subjectGoalService;
     private final BackupService backupService;
 
@@ -63,6 +65,7 @@ public class StudySyncController {
             StudyAnalyticsService studyAnalyticsService,
             ClockifyClient clockifyClient,
             StudyGoalService studyGoalService,
+            StudyEntryService studyEntryService,
             SubjectGoalService subjectGoalService,
             BackupService backupService
     ) {
@@ -71,6 +74,7 @@ public class StudySyncController {
         this.studyAnalyticsService = studyAnalyticsService;
         this.clockifyClient = clockifyClient;
         this.studyGoalService = studyGoalService;
+        this.studyEntryService = studyEntryService;
         this.subjectGoalService = subjectGoalService;
         this.backupService = backupService;
     }
@@ -195,6 +199,11 @@ public class StudySyncController {
     @GetMapping("/goals/subjects")
     public List<SubjectGoalProgressDto> getSubjectGoalProgress() {
         return subjectGoalService.getProgress();
+    }
+
+    @GetMapping("/subjects")
+    public List<String> getKnownSubjects() {
+        return studyEntryService.getKnownSubjects();
     }
 
     @PostMapping("/goals/subjects")
