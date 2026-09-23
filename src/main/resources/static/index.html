@@ -118,7 +118,7 @@
 
             <section class="view-panel" data-panel="syncs" hidden>
                 <section class="sync-panel" aria-labelledby="actions-title">
-                    <div><p class="section-kicker">CLOCKIFY + NOTION</p><h2 id="actions-title">Sincronizar seus estudos</h2><p class="personal-integration-note"><strong>Meu Notion pessoal</strong> - os botoes semanais abaixo atualizam meu modelo particular e, atualmente, essa integracao funciona apenas para mim.</p><p id="sync-message" class="muted" role="status" aria-live="polite">Pronto para sincronizar.</p></div>
+                    <div><p id="sync-source-label" class="section-kicker">CLOCKIFY</p><h2 id="actions-title">Sincronizar seus estudos</h2><p id="personal-notion-note" class="personal-integration-note" hidden><strong>Meu Notion pessoal</strong> - os botoes semanais abaixo atualizam meu modelo particular.</p><p id="sync-message" class="muted" role="status" aria-live="polite">Pronto para sincronizar.</p></div>
                     <div class="action-buttons"><button id="previous-week-button" class="button button-primary" type="button"><span class="icon icon-sync" aria-hidden="true"></span>Semana anterior</button><button id="current-week-button" class="button button-secondary" type="button"><span class="icon icon-sync" aria-hidden="true"></span>Semana atual</button><button id="import-all-button" class="button button-secondary" type="button"><span class="icon icon-download" aria-hidden="true"></span><span id="import-all-label">Importar tudo</span></button></div>
                 </section>
                 <div class="stats-grid compact-stats" aria-label="Resumo das sincronizacoes">
@@ -129,7 +129,7 @@
                 </div>
                 <section class="content-section" aria-labelledby="weeks-title">
                     <div class="section-heading"><div><p class="section-kicker">ACOMPANHAMENTO</p><h2 id="weeks-title">Semanas sincronizadas</h2></div><span id="weeks-state" class="section-state">Carregando...</span></div>
-                    <div class="table-wrap"><table><thead><tr><th>Semana</th><th>Total estudado</th><th>Notion</th><th>Sincronizada em</th></tr></thead><tbody id="weeks-table-body"><tr><td colspan="4" class="empty-state">Carregando registros...</td></tr></tbody></table></div>
+                    <div class="table-wrap"><table><thead><tr><th>Semana</th><th>Total estudado</th><th id="notion-column-header" hidden>Notion</th><th>Sincronizada em</th></tr></thead><tbody id="weeks-table-body"><tr><td colspan="3" class="empty-state">Carregando registros...</td></tr></tbody></table></div>
                 </section>
             </section>
 
@@ -149,11 +149,13 @@
                     </div>
                     <form id="settings-form" class="settings-form">
                         <label><span>Nova chave API do Clockify <em>(opcional)</em></span><input id="clockify-api-key" name="clockifyApiKey" type="password" autocomplete="new-password" placeholder="Deixe vazio para manter a conexao atual"><small class="field-note">Ao salvar, o Study Sync valida a chave e encontra seu usuario e workspace automaticamente.</small></label>
-                        <div class="personal-integration-note settings-notice"><strong>Meu Notion pessoal</strong><span>Esta integracao depende do meu modelo particular. Outros usuarios podem usar normalmente o Clockify, o banco local e a dashboard sem configurar estes campos.</span></div>
-                        <label><span>Chave API do Notion <em>(uso pessoal)</em></span><input id="notion-api-key" name="notionApiKey" type="password" autocomplete="new-password" placeholder="Deixe vazio para nao alterar"><small class="field-note">Credencial da minha integracao privada.</small></label>
-                        <label><span>ID da fonte de dados do Notion <em>(uso pessoal)</em></span><input id="notion-data-source-id" name="notionDataSourceId" type="text" maxlength="128" placeholder="Ex.: 9d255e9c-898c-4c5a-835f-cc1ab0187ea3"><small class="field-note">ID da fonte de dados usada pelo meu modelo pessoal.</small></label>
-                        <label><span>Coluna da data inicial <em>(uso pessoal)</em></span><input id="notion-date-property" name="notionDateProperty" type="text" maxlength="256" placeholder="Data início"><small class="field-note">No modelo pessoal, esta coluna identifica a segunda-feira da semana.</small></label>
-                        <label><span>Coluna de horas estudadas <em>(uso pessoal)</em></span><input id="notion-hours-property" name="notionHoursProperty" type="text" maxlength="256" placeholder="Horas na semana (Registro apartir de 20/07)"><small class="field-note">No modelo pessoal, esta coluna recebe valores como 6:20H.</small></label>
+                        <div id="personal-notion-settings" class="personal-notion-settings" hidden>
+                            <div class="personal-integration-note settings-notice"><strong>Meu Notion pessoal</strong><span>Esta integracao depende do meu modelo particular.</span></div>
+                            <label><span>Chave API do Notion <em>(uso pessoal)</em></span><input id="notion-api-key" name="notionApiKey" type="password" autocomplete="new-password" placeholder="Deixe vazio para nao alterar"><small class="field-note">Credencial da minha integracao privada.</small></label>
+                            <label><span>ID da fonte de dados do Notion <em>(uso pessoal)</em></span><input id="notion-data-source-id" name="notionDataSourceId" type="text" maxlength="128" placeholder="Ex.: 9d255e9c-898c-4c5a-835f-cc1ab0187ea3"><small class="field-note">ID da fonte de dados usada pelo meu modelo pessoal.</small></label>
+                            <label><span>Coluna da data inicial <em>(uso pessoal)</em></span><input id="notion-date-property" name="notionDateProperty" type="text" maxlength="256" placeholder="Data início"><small class="field-note">No modelo pessoal, esta coluna identifica a segunda-feira da semana.</small></label>
+                            <label><span>Coluna de horas estudadas <em>(uso pessoal)</em></span><input id="notion-hours-property" name="notionHoursProperty" type="text" maxlength="256" placeholder="Horas na semana (Registro apartir de 20/07)"><small class="field-note">No modelo pessoal, esta coluna recebe valores como 6:20H.</small></label>
+                        </div>
                         <div class="settings-actions"><button id="save-settings-button" class="button button-primary" type="submit"><span class="icon icon-settings" aria-hidden="true"></span>Salvar integracoes</button><button id="test-clockify-button" class="button button-secondary" type="button"><span class="icon icon-refresh" aria-hidden="true"></span>Testar Clockify</button></div>
                         <p id="settings-message" class="settings-message">Preencha somente as chaves que deseja alterar.</p>
                         <p id="clockify-test-message" class="settings-message" aria-live="polite"></p>
@@ -185,13 +187,13 @@
                 <label><span>Chave API do Clockify</span><input id="setup-clockify-api-key" type="password" autocomplete="new-password" required placeholder="Cole sua chave aqui"><small class="field-note">O sistema encontra automaticamente seu usuario e workspace.</small></label>
                 <a class="inline-link" href="https://app.clockify.me/user/settings" target="_blank" rel="noopener noreferrer">Onde encontro minha chave no Clockify?</a>
                 <button id="setup-connect-button" class="button button-primary" type="submit"><span class="icon icon-sync" aria-hidden="true"></span>Conectar Clockify</button>
-                <p id="setup-message" class="settings-message" aria-live="polite">O Notion pode ser configurado depois, se voce quiser.</p>
+                <p id="setup-message" class="settings-message" aria-live="polite">Sua configuracao fica salva somente neste computador.</p>
             </form>
         </div>
         <div id="setup-success-step" hidden>
             <div class="setup-success-mark" aria-hidden="true">OK</div>
             <p class="section-kicker">CONEXAO CONCLUIDA</p><h2>Clockify conectado</h2>
-            <p class="setup-dialog-copy">Seus dados ja podem ser importados. O Notion continua opcional e pode ser configurado depois em Configuracoes.</p>
+            <p class="setup-dialog-copy">Seus dados ja podem ser importados e acompanhados na dashboard.</p>
             <button id="setup-finish-button" class="button button-primary" type="button"><span class="icon icon-dashboard" aria-hidden="true"></span>Abrir dashboard</button>
         </div>
     </section>

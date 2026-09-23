@@ -140,7 +140,9 @@ Ao usar o assistente, `CLOCKIFY_USER_ID` e `CLOCKIFY_WORKSPACE_ID` são descober
 
 O Notion é opcional. Sem ele, a importação, a dashboard, as metas, o histórico, o backup e a exportação continuam funcionando normalmente.
 
-Atualmente, essa integração está ligada ao modelo pessoal de Notion do autor e não é um recurso geral para outros usuários. Os botões **Semana anterior** e **Semana atual** atualizam esse modelo somente quando as configurações pessoais do Notion estão completas. Para a maioria dos usuários, deixe os campos do Notion vazios.
+Atualmente, essa integração está ligada ao modelo pessoal de Notion do autor e não é um recurso geral para outros usuários. Por isso, os campos, textos e colunas do Notion ficam ocultos em instalações comuns.
+
+No computador do autor, o modo pessoal é ativado automaticamente quando a configuração completa já existe no banco. Depois de uma instalação limpa, ele pode ser liberado com `STUDY_SYNC_PERSONAL_NOTION_ENABLED=true`.
 
 ## Início automático no Windows
 

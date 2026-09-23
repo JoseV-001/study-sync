@@ -44,7 +44,8 @@ class IntegrationSettingsServiceTest {
         service = new IntegrationSettingsService(
                 appSettingRepository,
                 new ClockifyProperties(),
-                new NotionProperties()
+                new NotionProperties(),
+                false
         );
     }
 
@@ -67,5 +68,22 @@ class IntegrationSettingsServiceTest {
         assertThat(service.getNotionDateProperty()).isEqualTo("Data início");
         assertThat(service.getNotionHoursProperty())
                 .isEqualTo("Horas na semana (Registro apartir de 20/07)");
+    }
+
+    @Test
+    void hidesPersonalNotionForARegularInstallation() {
+        assertThat(service.getSettings().personalNotionEnabled()).isFalse();
+    }
+
+    @Test
+    void exposesPersonalNotionWhenOwnerModeIsEnabled() {
+        IntegrationSettingsService ownerService = new IntegrationSettingsService(
+                appSettingRepository,
+                new ClockifyProperties(),
+                new NotionProperties(),
+                true
+        );
+
+        assertThat(ownerService.getSettings().personalNotionEnabled()).isTrue();
     }
 }

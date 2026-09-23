@@ -1,4 +1,4 @@
-const state = { weeks: [], history: [], analytics: null, knownSubjects: [], setupWasOpened: false };
+const state = { weeks: [], history: [], analytics: null, knownSubjects: [], personalNotionEnabled: false, setupWasOpened: false };
 
 const elements = {
     analyticsActiveDays: document.querySelector('#analytics-active-days'),
@@ -48,10 +48,13 @@ const elements = {
     notionDataSourceId: document.querySelector('#notion-data-source-id'),
     notionDateProperty: document.querySelector('#notion-date-property'),
     notionHoursProperty: document.querySelector('#notion-hours-property'),
+    notionColumnHeader: document.querySelector('#notion-column-header'),
     pageSubtitle: document.querySelector('#page-subtitle'),
     pageTitle: document.querySelector('#page-title'),
     periodHours: document.querySelector('#period-hours'),
     periodRange: document.querySelector('#period-range'),
+    personalNotionNote: document.querySelector('#personal-notion-note'),
+    personalNotionSettings: document.querySelector('#personal-notion-settings'),
     previousWeekButton: document.querySelector('#previous-week-button'),
     importAllButton: document.querySelector('#import-all-button'),
     importAllLabel: document.querySelector('#import-all-label'),
@@ -80,6 +83,7 @@ const elements = {
     subjectGoalsForm: document.querySelector('#subject-goals-form'),
     subjectGoalsList: document.querySelector('#subject-goals-list'),
     syncMessage: document.querySelector('#sync-message'),
+    syncSourceLabel: document.querySelector('#sync-source-label'),
     trendChart: document.querySelector('#trend-chart'),
     trendChartTitle: document.querySelector('#trend-chart-title'),
     trendChartTotal: document.querySelector('#trend-chart-total'),
@@ -162,9 +166,15 @@ function setEmptyState(element, colspan, message, error = false) {
 
 function renderSettings(settings, openSetup = false) {
     const clockify = settings.clockifyConfigured ? 'Clockify configurado' : 'Clockify pendente';
-    const notion = settings.notionConfigured ? 'Notion configurado' : 'Notion opcional';
-    elements.settingsState.textContent = `${clockify} - ${notion}`;
+    state.personalNotionEnabled = settings.personalNotionEnabled;
+    elements.settingsState.textContent = settings.personalNotionEnabled
+        ? `${clockify} - ${settings.notionConfigured ? 'Notion configurado' : 'Notion pendente'}`
+        : clockify;
     elements.sidebarConnection.textContent = settings.clockifyConfigured ? 'Clockify conectado' : 'Configuracao pendente';
+    elements.personalNotionNote.hidden = !settings.personalNotionEnabled;
+    elements.personalNotionSettings.hidden = !settings.personalNotionEnabled;
+    elements.notionColumnHeader.hidden = !settings.personalNotionEnabled;
+    elements.syncSourceLabel.textContent = settings.personalNotionEnabled ? 'CLOCKIFY + NOTION' : 'CLOCKIFY';
     elements.setupGuide.hidden = settings.clockifyConfigured;
     elements.testClockifyButton.disabled = !settings.clockifyConfigured;
     if (!settings.clockifyConfigured && openSetup && !state.setupWasOpened) showSetup();
@@ -267,10 +277,11 @@ function renderSubjectGoals(goals) {
 
 function renderWeeks() {
     const weeks = state.weeks;
+    const columnCount = state.personalNotionEnabled ? 4 : 3;
     elements.weeksCount.textContent = weeks.length;
     elements.weeksState.textContent = `${weeks.length} registro${weeks.length === 1 ? '' : 's'}`;
     if (!weeks.length) {
-        setEmptyState(elements.weeksTableBody, 4, 'Nenhuma semana sincronizada no periodo.');
+        setEmptyState(elements.weeksTableBody, columnCount, 'Nenhuma semana sincronizada no periodo.');
         return;
     }
 
@@ -281,7 +292,9 @@ function renderWeeks() {
     elements.weeksTableBody.innerHTML = '';
     weeks.forEach((week) => {
         const row = document.createElement('tr');
-        const values = [`${formatDate(week.weekStartDate)} - ${formatDate(week.weekEndDate)}`, formatMinutes(week.totalMinutes), week.notionTime || '--', formatDateTime(week.syncedAt)];
+        const values = [`${formatDate(week.weekStartDate)} - ${formatDate(week.weekEndDate)}`, formatMinutes(week.totalMinutes)];
+        if (state.personalNotionEnabled) values.push(week.notionTime || '--');
+        values.push(formatDateTime(week.syncedAt));
         values.forEach((value, index) => {
             const cell = document.createElement('td');
             if (index === 1) {
@@ -475,7 +488,7 @@ async function loadDashboard() {
         elements.historyState.textContent = 'Indisponivel';
         elements.settingsState.textContent = 'Indisponivel';
         elements.analyticsState.textContent = 'Indisponivel';
-        setEmptyState(elements.weeksTableBody, 4, 'Nao foi possivel carregar os registros.', true);
+        setEmptyState(elements.weeksTableBody, state.personalNotionEnabled ? 4 : 3, 'Nao foi possivel carregar os registros.', true);
         setEmptyState(elements.historyTableBody, 5, 'Nao foi possivel carregar o historico.', true);
         elements.analyticsMessage.textContent = 'Nao foi possivel carregar os analytics para o periodo selecionado.';
         elements.analyticsMessage.classList.add('error-text');
@@ -747,9 +760,11 @@ async function runSync(url, label) {
         const response = await fetch(url, { method: 'POST' });
         const result = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(result.message || 'A sincronizacao falhou.');
-        elements.syncMessage.textContent = result.notionUpdated
-            ? `Notion pessoal atualizado com sucesso: ${result.syncedTime || '--'}.`
-            : `Semana salva apenas na dashboard: ${result.syncedTime || '--'}. O Notion pessoal nao esta configurado.`;
+        elements.syncMessage.textContent = state.personalNotionEnabled
+            ? (result.notionUpdated
+                ? `Notion pessoal atualizado com sucesso: ${result.syncedTime || '--'}.`
+                : `Semana salva na dashboard: ${result.syncedTime || '--'}. O Notion pessoal nao esta configurado.`)
+            : `Semana sincronizada com sucesso: ${result.syncedTime || '--'}.`;
         await loadDashboard();
     } catch (error) {
         elements.syncMessage.textContent = error.message;

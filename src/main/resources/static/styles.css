@@ -213,6 +213,7 @@ tbody tr:hover { background: rgba(139, 92, 246, 0.06); }
 .settings-copy > p:not(.section-kicker) { max-width: 380px; margin: 10px 0 20px; color: var(--muted); font-size: 0.84rem; }
 .connection-state { display: inline-flex; padding: 7px 10px; border-radius: 4px; background: var(--accent-soft); color: #c4b5fd; font-size: 0.74rem; font-weight: 700; }
 .settings-form { display: grid; gap: 17px; }
+.personal-notion-settings { display: grid; gap: 17px; }
 .settings-form label { display: grid; gap: 6px; }
 .settings-form label > span { color: var(--ink); font-size: 0.76rem; font-weight: 800; }
 .settings-form b { color: var(--danger); }

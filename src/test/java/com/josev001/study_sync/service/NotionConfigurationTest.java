@@ -30,6 +30,7 @@ class NotionConfigurationTest {
         NotionService notion = new NotionService(mock(NotionClient.class), settings);
 
         assertThat(settings.getSettings().notionConfigured()).isEqualTo(configured);
+        assertThat(settings.getSettings().personalNotionEnabled()).isEqualTo(configured);
         assertThat(notion.isConfigured()).isEqualTo(configured);
     }
 
@@ -61,6 +62,6 @@ class NotionConfigurationTest {
         NotionProperties properties = new NotionProperties();
         properties.setApiKey(key);
         properties.setDataSourceId(source);
-        return new IntegrationSettingsService(mock(AppSettingRepository.class), new ClockifyProperties(), properties);
+        return new IntegrationSettingsService(mock(AppSettingRepository.class), new ClockifyProperties(), properties, false);
     }
 }

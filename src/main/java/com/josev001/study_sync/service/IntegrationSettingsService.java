@@ -9,6 +9,7 @@ import com.josev001.study_sync.persistence.AppSetting;
 import com.josev001.study_sync.persistence.AppSettingRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Instant;
 
@@ -26,15 +27,18 @@ public class IntegrationSettingsService {
     private final AppSettingRepository appSettingRepository;
     private final ClockifyProperties clockifyProperties;
     private final NotionProperties notionProperties;
+    private final boolean personalNotionEnabled;
 
     public IntegrationSettingsService(
             AppSettingRepository appSettingRepository,
             ClockifyProperties clockifyProperties,
-            NotionProperties notionProperties
+            NotionProperties notionProperties,
+            @Value("${study-sync.personal-notion.enabled:false}") boolean personalNotionEnabled
     ) {
         this.appSettingRepository = appSettingRepository;
         this.clockifyProperties = clockifyProperties;
         this.notionProperties = notionProperties;
+        this.personalNotionEnabled = personalNotionEnabled;
     }
 
     public String getClockifyApiKey() {
@@ -76,7 +80,8 @@ public class IntegrationSettingsService {
                 hasText(getClockifyApiKey())
                         && hasText(getClockifyUserId())
                         && hasText(getClockifyWorkspaceId()),
-                isNotionConfigured()
+                isNotionConfigured(),
+                personalNotionEnabled || isNotionConfigured()
         );
     }
 
