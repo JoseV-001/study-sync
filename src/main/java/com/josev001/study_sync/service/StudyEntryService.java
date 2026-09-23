@@ -2,6 +2,7 @@ package com.josev001.study_sync.service;
 
 import com.josev001.study_sync.dto.ClockifyEntryMetadataDto;
 import com.josev001.study_sync.dto.StudyEntryStoreResult;
+import com.josev001.study_sync.dto.SubjectSuggestionDto;
 import com.josev001.study_sync.dto.TimeEntryDto;
 import com.josev001.study_sync.persistence.StudyEntry;
 import com.josev001.study_sync.persistence.StudyEntryRepository;
@@ -13,6 +14,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -109,12 +113,27 @@ public class StudyEntryService {
     }
 
     @Transactional(readOnly = true)
-    public List<String> getKnownSubjects() {
-        return studyEntryRepository.findDistinctSubjects().stream()
-                .map(String::trim)
-                .distinct()
+    public List<SubjectSuggestionDto> getKnownSubjects() {
+        Map<String, SubjectSuggestionDto> suggestions = new LinkedHashMap<>();
+        addSuggestions(suggestions, studyEntryRepository.findDistinctTopicSubjects(), "Topico");
+        addSuggestions(suggestions, studyEntryRepository.findDistinctTagSubjects(), "Tag");
+        addSuggestions(suggestions, studyEntryRepository.findDistinctProjectSubjects(), "Projeto");
+        return List.copyOf(suggestions.values());
+    }
+
+    private void addSuggestions(
+            Map<String, SubjectSuggestionDto> suggestions,
+            List<String> subjects,
+            String category
+    ) {
+        subjects.stream()
+                .filter(this::hasText)
+                .map(this::limit)
                 .sorted(String.CASE_INSENSITIVE_ORDER)
-                .toList();
+                .forEach(subject -> suggestions.putIfAbsent(
+                        subject.toLowerCase(Locale.ROOT),
+                        new SubjectSuggestionDto(subject, category)
+                ));
     }
 
     private boolean isCompletedEntry(TimeEntryDto entry) {

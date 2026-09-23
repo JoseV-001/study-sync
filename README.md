@@ -80,7 +80,7 @@ Em **Configurações**, você pode definir:
 - uma meta semanal, calculada de segunda a domingo;
 - metas semanais por matéria ou tópico.
 
-No campo de matéria, selecione um nome já identificado no histórico ou digite um novo. Para o progresso ser calculado corretamente, o nome precisa corresponder ao identificador usado nos registros importados.
+No campo de matéria, selecione um tópico, uma tag ou um projeto já identificado no histórico, ou digite um nome novo. As sugestões são agrupadas por origem e não incluem descrições livres. Para o progresso ser calculado corretamente, o nome precisa corresponder ao identificador usado nos registros importados.
 
 ### Como as matérias são identificadas
 

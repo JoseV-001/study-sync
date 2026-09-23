@@ -18,7 +18,29 @@ public interface StudyEntryRepository extends JpaRepository<StudyEntry, String> 
     @Query("""
             select distinct entry.subject
             from StudyEntry entry
-            where entry.subject is not null and trim(entry.subject) <> ''
+            where entry.topicName is not null
+              and trim(entry.topicName) <> ''
+              and entry.subject = entry.topicName
             """)
-    List<String> findDistinctSubjects();
+    List<String> findDistinctTopicSubjects();
+
+    @Query("""
+            select distinct entry.subject
+            from StudyEntry entry
+            where entry.topicName is null
+              and entry.tagNames is not null
+              and trim(entry.tagNames) <> ''
+              and entry.subject is not null
+              and trim(entry.subject) <> ''
+            """)
+    List<String> findDistinctTagSubjects();
+
+    @Query("""
+            select distinct entry.subject
+            from StudyEntry entry
+            where entry.projectName is not null
+              and trim(entry.projectName) <> ''
+              and entry.subject = entry.projectName
+            """)
+    List<String> findDistinctProjectSubjects();
 }

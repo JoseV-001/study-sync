@@ -4,6 +4,7 @@ import com.josev001.study_sync.dto.ClockifyEntryMetadataDto;
 import com.josev001.study_sync.dto.TimeEntryDto;
 import com.josev001.study_sync.dto.TimeIntervalDto;
 import com.josev001.study_sync.dto.StudyEntryStoreResult;
+import com.josev001.study_sync.dto.SubjectSuggestionDto;
 import com.josev001.study_sync.persistence.StudyEntry;
 import com.josev001.study_sync.persistence.StudyEntryRepository;
 import org.junit.jupiter.api.Test;
@@ -113,14 +114,19 @@ class StudyEntryServiceTest {
     }
 
     @Test
-    void listsKnownSubjectsInCaseInsensitiveOrder() {
-        when(studyEntryRepository.findDistinctSubjects()).thenReturn(
-                List.of(" NoSQL ", "Algoritmos", "Java")
-        );
+    void listsKnownSubjectsByCategoryWithoutLooseDescriptions() {
+        when(studyEntryRepository.findDistinctTopicSubjects()).thenReturn(List.of(" Java ", "Algoritmos"));
+        when(studyEntryRepository.findDistinctTagSubjects()).thenReturn(List.of("Faculdade", "java"));
+        when(studyEntryRepository.findDistinctProjectSubjects()).thenReturn(List.of("Study Sync"));
 
-        List<String> subjects = new StudyEntryService(studyEntryRepository, clockifyMetadataService)
+        List<SubjectSuggestionDto> subjects = new StudyEntryService(studyEntryRepository, clockifyMetadataService)
                 .getKnownSubjects();
 
-        assertThat(subjects).containsExactly("Algoritmos", "Java", "NoSQL");
+        assertThat(subjects).containsExactly(
+                new SubjectSuggestionDto("Algoritmos", "Topico"),
+                new SubjectSuggestionDto("Java", "Topico"),
+                new SubjectSuggestionDto("Faculdade", "Tag"),
+                new SubjectSuggestionDto("Study Sync", "Projeto")
+        );
     }
 }

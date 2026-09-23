@@ -448,7 +448,8 @@ function analyticsUrl() {
 function renderSubjectGoalOptions(subjects) {
     elements.subjectGoalOptions.replaceChildren(...subjects.map((subject) => {
         const option = document.createElement('option');
-        option.value = subject;
+        option.value = subject.name;
+        option.label = `${subject.category}: ${subject.name}`;
         return option;
     }));
 }

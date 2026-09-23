@@ -16,6 +16,7 @@ import com.josev001.study_sync.dto.StudyGoalProgressDto;
 import com.josev001.study_sync.dto.StudyGoalRequest;
 import com.josev001.study_sync.dto.SubjectGoalProgressDto;
 import com.josev001.study_sync.dto.SubjectGoalRequest;
+import com.josev001.study_sync.dto.SubjectSuggestionDto;
 import com.josev001.study_sync.dto.UserResponse;
 import com.josev001.study_sync.client.ClockifyClient;
 import com.josev001.study_sync.service.IntegrationSettingsService;
@@ -202,7 +203,7 @@ public class StudySyncController {
     }
 
     @GetMapping("/subjects")
-    public List<String> getKnownSubjects() {
+    public List<SubjectSuggestionDto> getKnownSubjects() {
         return studyEntryService.getKnownSubjects();
     }
 
