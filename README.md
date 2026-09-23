@@ -230,9 +230,10 @@ O pacote será criado em:
 
 ```text
 release\StudySync\StudySync.exe
+release\StudySync-1.0.1-windows-x64.zip
 ```
 
-Distribua a pasta `release\StudySync` completa.
+Distribua o arquivo ZIP gerado. Ele contém a pasta `StudySync` completa, incluindo o executável e o runtime Java.
 
 ### PostgreSQL opcional
 

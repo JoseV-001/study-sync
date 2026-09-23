@@ -1,7 +1,8 @@
 $ErrorActionPreference = 'Stop'
 
 $projectPath = $PSScriptRoot
-$jarName = 'study-sync-0.0.1-SNAPSHOT.jar'
+$appVersion = '1.0.1'
+$jarName = "study-sync-$appVersion.jar"
 $jarPath = Join-Path $projectPath "target\$jarName"
 $outputPath = Join-Path $projectPath 'release'
 $java21Path = 'C:\Program Files\Java\jdk-21\bin'
@@ -50,7 +51,7 @@ Write-Host 'Gerando o pacote executavel...' -ForegroundColor Cyan
     --input $inputPath `
     --main-jar $jarName `
     --dest $outputPath `
-    --app-version 1.0.0 `
+    --app-version $appVersion `
     --vendor 'JoseV-001' `
     --description 'Study Sync - local study dashboard' `
     --java-options '-Dstudy-sync.desktop=true' `
@@ -67,4 +68,8 @@ if (-not (Test-Path -LiteralPath $executablePath)) {
     throw 'O executavel nao foi encontrado apos o empacotamento.'
 }
 
+$archivePath = Join-Path $outputPath "StudySync-$appVersion-windows-x64.zip"
+Compress-Archive -LiteralPath $appImagePath -DestinationPath $archivePath -CompressionLevel Optimal -Force
+
 Write-Host "`nExecutavel criado em: $executablePath" -ForegroundColor Green
+Write-Host "Pacote para distribuicao criado em: $archivePath" -ForegroundColor Green
