@@ -33,6 +33,14 @@ if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $jarPath)) {
 
 New-Item -ItemType Directory -Path $outputPath -Force | Out-Null
 $inputPath = Join-Path $projectPath 'target\desktop-input'
+if (Test-Path -LiteralPath $inputPath) {
+    $resolvedInput = (Resolve-Path -LiteralPath $inputPath).Path
+    $expectedInput = [System.IO.Path]::GetFullPath((Join-Path $projectPath 'target\desktop-input'))
+    if ($resolvedInput -ne $expectedInput -or -not $resolvedInput.StartsWith($projectPath, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw 'Caminho temporario de pacote inesperado.'
+    }
+    Remove-Item -LiteralPath $inputPath -Recurse -Force
+}
 New-Item -ItemType Directory -Path $inputPath -Force | Out-Null
 Copy-Item -LiteralPath $jarPath -Destination (Join-Path $inputPath $jarName) -Force
 $appImagePath = Join-Path $outputPath 'StudySync'
