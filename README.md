@@ -28,7 +28,7 @@ O Study Sync funciona com SQLite e guarda os dados no próprio computador. Para 
 
 O pacote pronto já inclui o Java e usa SQLite. PostgreSQL não é necessário.
 
-> O executável gerado não fica versionado neste repositório. Para usar sem compilar, obtenha o pacote portátil distribuído pelo desenvolvedor. Para gerar seu próprio pacote, consulte [Gerando o executável](#gerando-o-executável).
+> O executável gerado não fica versionado neste repositório. Para usar sem compilar, baixe o pacote portátil na página de [Releases](https://github.com/JoseV-001/study-sync/releases). Para gerar seu próprio pacote, consulte [Gerando o executável](#gerando-o-executável).
 
 ### Primeira configuração
 
@@ -140,9 +140,9 @@ Ao usar o assistente, `CLOCKIFY_USER_ID` e `CLOCKIFY_WORKSPACE_ID` são descober
 
 O Notion é opcional. Sem ele, a importação, a dashboard, as metas, o histórico, o backup e a exportação continuam funcionando normalmente.
 
-Atualmente, essa integração está ligada ao modelo pessoal de Notion do autor e não é um recurso geral para outros usuários. Por isso, os campos, textos e colunas do Notion ficam ocultos em instalações comuns.
+Atualmente, essa integração está ligada ao meu modelo pessoal do Notion e não é um recurso geral para outros usuários. Por isso, os campos, textos e colunas do Notion ficam ocultos em instalações comuns.
 
-No computador do autor, o modo pessoal é ativado automaticamente quando a configuração completa já existe no banco. Depois de uma instalação limpa, ele pode ser liberado com `STUDY_SYNC_PERSONAL_NOTION_ENABLED=true`.
+No meu computador, o modo pessoal é ativado automaticamente quando a configuração completa já existe no banco. Depois de uma instalação limpa, posso liberá-lo com `STUDY_SYNC_PERSONAL_NOTION_ENABLED=true`.
 
 ## Início automático no Windows
 
@@ -303,6 +303,6 @@ O endpoint `/sync/week` aceita qualquer data; o sistema encontra automaticamente
 - HTML, CSS e JavaScript sem framework no frontend;
 - Maven e `jpackage`.
 
-## Autor
+## Sobre mim
 
-Desenvolvido por [José Victor](https://github.com/JoseV-001).
+Eu sou [José Victor](https://github.com/JoseV-001) e desenvolvi o Study Sync para organizar e acompanhar minha rotina de estudos.
