@@ -117,6 +117,7 @@ public class StudyEntryService {
         Map<String, SubjectSuggestionDto> suggestions = new LinkedHashMap<>();
         addSuggestions(suggestions, studyEntryRepository.findDistinctTopicSubjects(), "Topico");
         addSuggestions(suggestions, studyEntryRepository.findDistinctTagSubjects(), "Tag");
+        addSuggestions(suggestions, studyEntryRepository.findDistinctDescriptionSubjects(), "Descricao");
         addSuggestions(suggestions, studyEntryRepository.findDistinctProjectSubjects(), "Projeto");
         return List.copyOf(suggestions.values());
     }

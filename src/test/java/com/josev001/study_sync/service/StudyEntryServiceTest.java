@@ -118,6 +118,7 @@ class StudyEntryServiceTest {
         when(studyEntryRepository.findDistinctTopicSubjects()).thenReturn(List.of(" Java ", "Algoritmos"));
         when(studyEntryRepository.findDistinctTagSubjects()).thenReturn(List.of("Faculdade", "java"));
         when(studyEntryRepository.findDistinctProjectSubjects()).thenReturn(List.of("Study Sync"));
+        when(studyEntryRepository.findDistinctDescriptionSubjects()).thenReturn(List.of("DevSuperior"));
 
         List<SubjectSuggestionDto> subjects = new StudyEntryService(studyEntryRepository, clockifyMetadataService)
                 .getKnownSubjects();
@@ -126,7 +127,31 @@ class StudyEntryServiceTest {
                 new SubjectSuggestionDto("Algoritmos", "Topico"),
                 new SubjectSuggestionDto("Java", "Topico"),
                 new SubjectSuggestionDto("Faculdade", "Tag"),
+                new SubjectSuggestionDto("DevSuperior", "Descricao"),
                 new SubjectSuggestionDto("Study Sync", "Projeto")
         );
+    }
+
+    @Test
+    void usesDescriptionAsSubjectWhenItIsTheOnlyUsefulClockifyIdentifier() {
+        TimeEntryDto entry = new TimeEntryDto(
+                "entry-id",
+                "DevSuperior",
+                "user-id",
+                null,
+                null,
+                List.of(),
+                new TimeIntervalDto("2026-09-15T22:00:00Z", "2026-09-15T23:00:00Z", "PT1H")
+        );
+        when(clockifyMetadataService.resolve(entry)).thenReturn(
+                new ClockifyEntryMetadataDto(null, null, List.of())
+        );
+        when(studyEntryRepository.findById("entry-id")).thenReturn(Optional.empty());
+
+        new StudyEntryService(studyEntryRepository, clockifyMetadataService).storeEntries(List.of(entry));
+
+        ArgumentCaptor<StudyEntry> captor = ArgumentCaptor.forClass(StudyEntry.class);
+        verify(studyEntryRepository).save(captor.capture());
+        assertThat(captor.getValue().getSubject()).isEqualTo("DevSuperior");
     }
 }

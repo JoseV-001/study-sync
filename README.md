@@ -80,7 +80,7 @@ Em **Configurações**, você pode definir:
 - uma meta semanal, calculada de segunda a domingo;
 - metas semanais por matéria ou tópico.
 
-No campo de matéria, selecione um tópico, uma tag ou um projeto já identificado no histórico, ou digite um nome novo. As sugestões são agrupadas por origem e não incluem descrições livres. Para o progresso ser calculado corretamente, o nome precisa corresponder ao identificador usado nos registros importados.
+No campo de matéria, selecione um tópico, uma tag, uma descrição ou um projeto já identificado no histórico, ou digite um nome novo. As sugestões são agrupadas por origem. Para o progresso ser calculado corretamente, o nome precisa corresponder ao identificador usado nos registros importados.
 
 ### Como as matérias são identificadas
 
@@ -92,7 +92,7 @@ O sistema resolve os nomes do Clockify nesta ordem:
 4. projeto;
 5. `Sem materia`, quando nenhum nome estiver disponível.
 
-IDs internos do Clockify não são usados como nome de matéria. Depois de corrigir uma tarefa, tag, descrição ou projeto no Clockify, reimporte o período para atualizar o registro local.
+IDs internos do Clockify não são usados como nome de matéria. As sugestões também exibem descrições livres como `Descricao` quando elas forem o identificador usado pelo registro. Depois de corrigir uma tarefa, tag, descrição ou projeto no Clockify, reimporte o período para atualizar o registro local.
 
 ## Seus dados
 

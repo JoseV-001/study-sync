@@ -43,4 +43,13 @@ public interface StudyEntryRepository extends JpaRepository<StudyEntry, String> 
               and entry.subject = entry.projectName
             """)
     List<String> findDistinctProjectSubjects();
+
+    @Query("""
+            select distinct entry.subject
+            from StudyEntry entry
+            where entry.description is not null
+              and trim(entry.description) <> ''
+              and entry.subject = entry.description
+            """)
+    List<String> findDistinctDescriptionSubjects();
 }
