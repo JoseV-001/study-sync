@@ -53,6 +53,47 @@ class SubjectGoalServiceTest {
         assertThat(progress.getFirst().goalReached()).isFalse();
     }
 
+    @Test
+    void countsStudyForAProjectTagAndTopicGoalWhenTheEntryHasAllIdentifiers() {
+        Clock clock = Clock.fixed(Instant.parse("2026-09-18T15:00:00Z"), APP_ZONE);
+        LocalDate weekStart = LocalDate.of(2026, 9, 14);
+        when(subjectGoalRepository.findAllByOrderBySubjectAsc()).thenReturn(List.of(
+                new SubjectGoal("DevSuperior", 300, Instant.now(clock)),
+                new SubjectGoal("Java", 300, Instant.now(clock))
+        ));
+        Instant startedAt = Instant.parse("2026-09-18T13:00:00Z");
+        Instant endedAt = Instant.parse("2026-09-18T13:47:00Z");
+        when(studyEntryService.getEntriesBetween(weekStart, weekStart.plusDays(6))).thenReturn(List.of(
+                new StudyEntry(
+                        "clockify-entry",
+                        "project-id",
+                        "task-id",
+                        "Java",
+                        "Java",
+                        "Java",
+                        "DevSuperior",
+                        null,
+                        "Java",
+                        startedAt,
+                        endedAt,
+                        47,
+                        startedAt.atZone(APP_ZONE).toLocalDate(),
+                        Instant.now(clock)
+                )
+        ));
+
+        List<SubjectGoalProgressDto> progress = new SubjectGoalService(
+                subjectGoalRepository,
+                studyEntryService,
+                clock
+        ).getProgress();
+
+        assertThat(progress).extracting(SubjectGoalProgressDto::subject)
+                .containsExactly("DevSuperior", "Java");
+        assertThat(progress).extracting(SubjectGoalProgressDto::studiedMinutes)
+                .containsExactly(47L, 47L);
+    }
+
     private StudyEntry entry(String id, String subject, String start, String end) {
         Instant startedAt = Instant.parse(start);
         Instant endedAt = Instant.parse(end);

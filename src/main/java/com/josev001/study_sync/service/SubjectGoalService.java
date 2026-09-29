@@ -17,9 +17,11 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class SubjectGoalService {
@@ -94,10 +96,32 @@ public class SubjectGoalService {
             Instant endedAt = entry.getEndedAt().isBefore(rangeEnd) ? entry.getEndedAt() : rangeEnd;
             if (startedAt.isBefore(endedAt)) {
                 long minutes = Duration.between(startedAt, endedAt).toMinutes();
-                studiedBySubject.merge(normalize(entry.getSubject()), minutes, Long::sum);
+                for (String subject : subjectAliases(entry)) {
+                    studiedBySubject.merge(normalize(subject), minutes, Long::sum);
+                }
             }
         }
         return studiedBySubject;
+    }
+
+    private Set<String> subjectAliases(StudyEntry entry) {
+        Set<String> aliases = new HashSet<>();
+        addAlias(aliases, entry.getSubject());
+        addAlias(aliases, entry.getTopicName());
+        addAlias(aliases, entry.getProjectName());
+        addAlias(aliases, entry.getDescription());
+        if (entry.getTagNames() != null) {
+            for (String tag : entry.getTagNames().split(",")) {
+                addAlias(aliases, tag);
+            }
+        }
+        return aliases;
+    }
+
+    private void addAlias(Set<String> aliases, String value) {
+        if (value != null && !value.isBlank()) {
+            aliases.add(value.trim());
+        }
     }
 
     private int progressPercentage(long studiedMinutes, int goalMinutes) {
