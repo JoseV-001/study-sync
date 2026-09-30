@@ -161,6 +161,10 @@ Se você mover a pasta do executável, remova as tarefas e ative-as novamente no
 
 Abra `http://localhost:8080/` no navegador. Se a página não responder, encerre processos antigos do Study Sync e abra o executável novamente.
 
+### Como desligar o Study Sync
+
+Fechar o navegador não encerra o sistema. Para desligá-lo sem usar o terminal, execute `stop-study-sync.bat` na pasta do projeto ou do pacote portátil. O script encerra todas as instâncias do Study Sync com segurança.
+
 ### O executável mostra `Failed to launch JVM`
 
 Não mova apenas `StudySync.exe`. O executável depende das pastas `app` e `runtime` que ficam ao lado dele. Extraia e mantenha o pacote completo.
