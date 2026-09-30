@@ -34,7 +34,7 @@ O pacote pronto já inclui o Java e usa SQLite. PostgreSQL não é necessário.
 
 1. Extraia a pasta do pacote em um local definitivo.
 2. Abra `StudySync.exe`.
-3. Aguarde a dashboard abrir em `http://localhost:8080/`.
+3. Aguarde a dashboard abrir em `http://localhost:3001/`.
 4. No assistente inicial, cole sua chave de API do Clockify.
 5. Depois que a conexão for validada, abra **Sincronizações** e use **Importar tudo**.
 6. Acesse **Visão geral** e **Análises** para conferir seu histórico.
@@ -159,7 +159,7 @@ Se você mover a pasta do executável, remova as tarefas e ative-as novamente no
 
 ### A dashboard não abriu
 
-Abra `http://localhost:8080/` no navegador. Se a página não responder, encerre processos antigos do Study Sync e abra o executável novamente.
+Abra `http://localhost:3001/` no navegador. Se a página não responder, encerre processos antigos do Study Sync e abra o executável novamente.
 
 ### Como desligar o Study Sync
 
@@ -169,15 +169,15 @@ Fechar o navegador não encerra o sistema. Para desligá-lo sem usar o terminal,
 
 Não mova apenas `StudySync.exe`. O executável depende das pastas `app` e `runtime` que ficam ao lado dele. Extraia e mantenha o pacote completo.
 
-### A porta 8080 já está em uso
+### A porta 3001 já está em uso
 
 Encerre a aplicação que estiver usando a porta ou inicie o Study Sync com outra porta:
 
 ```powershell
-.\StudySync.exe --server.port=8081
+.\StudySync.exe --server.port=3002
 ```
 
-Depois, acesse `http://localhost:8081/`.
+Depois, acesse `http://localhost:3002/`.
 
 ### Estudos antigos não aparecem
 
@@ -264,6 +264,7 @@ As principais propriedades estão em `src/main/resources/application.properties`
 
 ```properties
 study-sync.schedule.cron=0 0 20 * * MON
+server.port=${STUDY_SYNC_PORT:3001}
 study-sync.schedule.zone=America/Sao_Paulo
 study-sync.schedule.enabled=true
 study-sync.sync-on-startup=true

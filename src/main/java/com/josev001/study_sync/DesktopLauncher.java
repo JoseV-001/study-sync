@@ -28,7 +28,7 @@ final class DesktopLauncher {
                 || "none".equals(environment.getProperty("spring.main.web-application-type"))) {
             return false;
         }
-        int port = environment.getProperty("server.port", Integer.class, 8080);
+        int port = environment.getProperty("server.port", Integer.class, 3001);
         URI dashboard = URI.create("http://localhost:" + port + "/");
         if (isStudySyncRunning(dashboard)) {
             if (environment.getProperty("study-sync.open-browser", Boolean.class, false)) {

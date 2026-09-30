@@ -34,8 +34,8 @@ try {
 
     $env:SPRING_APPLICATION_JSON = '{"study-sync":{"sync-on-startup":false}}'
 
-    Write-Host 'Study Sync iniciado. Abrindo http://localhost:8080/' -ForegroundColor Green
-    Start-Process 'http://localhost:8080/'
+    Write-Host 'Study Sync iniciado. Abrindo http://localhost:3001/' -ForegroundColor Green
+    Start-Process 'http://localhost:3001/'
     & (Get-Command java -ErrorAction Stop).Source -jar $jarPath
 } catch {
     Show-Failure $_.Exception.Message

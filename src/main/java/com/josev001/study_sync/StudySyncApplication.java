@@ -32,7 +32,7 @@ public class StudySyncApplication {
         }
 
         int port = event.getApplicationContext().getEnvironment()
-                .getProperty("local.server.port", Integer.class, 8080);
+                .getProperty("local.server.port", Integer.class, 3001);
         DesktopLauncher.openBrowser(URI.create("http://localhost:" + port + "/"));
     }
 
