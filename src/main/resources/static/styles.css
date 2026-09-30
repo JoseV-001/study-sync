@@ -58,6 +58,8 @@ h2 { margin-bottom: 0; font-size: 1.08rem; letter-spacing: 0; }
 .last-refresh, .section-state { white-space: nowrap; }
 .icon-button { display: grid; width: 40px; height: 40px; padding: 0; place-items: center; border: 1px solid rgba(139, 92, 246, 0.32); border-radius: 6px; background: var(--surface); color: var(--ink); cursor: pointer; }
 .icon-button:hover { border-color: var(--accent); color: var(--accent); }
+.icon-button-danger { color: var(--muted); }
+.icon-button-danger:hover { border-color: var(--danger); color: var(--danger); }
 .icon { display: inline-block; width: 17px; height: 17px; flex: 0 0 auto; background: currentColor; mask-position: center; mask-repeat: no-repeat; mask-size: contain; -webkit-mask-position: center; -webkit-mask-repeat: no-repeat; -webkit-mask-size: contain; }
 .icon-dashboard { mask-image: url('/assets/icons/layout-dashboard.svg'); -webkit-mask-image: url('/assets/icons/layout-dashboard.svg'); }
 .icon-chart { mask-image: url('/assets/icons/chart-no-axes-column-increasing.svg'); -webkit-mask-image: url('/assets/icons/chart-no-axes-column-increasing.svg'); }
@@ -67,6 +69,7 @@ h2 { margin-bottom: 0; font-size: 1.08rem; letter-spacing: 0; }
 .icon-refresh { mask-image: url('/assets/icons/refresh-cw.svg'); -webkit-mask-image: url('/assets/icons/refresh-cw.svg'); }
 .icon-download { mask-image: url('/assets/icons/cloud-download.svg'); -webkit-mask-image: url('/assets/icons/cloud-download.svg'); }
 .icon-github { mask-image: url('/assets/icons/github.svg'); -webkit-mask-image: url('/assets/icons/github.svg'); }
+.icon-power { mask-image: url('/assets/icons/power.svg'); -webkit-mask-image: url('/assets/icons/power.svg'); }
 .icon-trash { mask-image: url('/assets/icons/trash-2.svg'); -webkit-mask-image: url('/assets/icons/trash-2.svg'); }
 
 .analytics-toolbar { display: flex; max-width: 1320px; margin: 0 auto; padding: 14px 16px; align-items: end; gap: 10px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }

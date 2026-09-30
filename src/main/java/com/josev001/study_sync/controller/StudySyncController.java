@@ -37,6 +37,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.boot.SpringApplication;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
@@ -59,6 +62,7 @@ public class StudySyncController {
     private final StudyEntryService studyEntryService;
     private final SubjectGoalService subjectGoalService;
     private final BackupService backupService;
+    private final ConfigurableApplicationContext applicationContext;
 
     public StudySyncController(
             StudySyncService studySyncService,
@@ -68,7 +72,8 @@ public class StudySyncController {
             StudyGoalService studyGoalService,
             StudyEntryService studyEntryService,
             SubjectGoalService subjectGoalService,
-            BackupService backupService
+            BackupService backupService,
+            ConfigurableApplicationContext applicationContext
     ) {
         this.studySyncService = studySyncService;
         this.settingsService = settingsService;
@@ -78,11 +83,41 @@ public class StudySyncController {
         this.studyEntryService = studyEntryService;
         this.subjectGoalService = subjectGoalService;
         this.backupService = backupService;
+        this.applicationContext = applicationContext;
     }
 
     @PostMapping("/current-week")
     public ResponseEntity<?> syncCurrentWeek() {
         return syncWeekResponse(studySyncService::syncCurrentWeek);
+    }
+
+    @PostMapping("/shutdown")
+    public ResponseEntity<Void> shutdown(HttpServletRequest request) {
+        if (!isLocalRequest(request)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        Thread shutdownThread = new Thread(
+                () -> {
+                    try {
+                        Thread.sleep(250);
+                    } catch (InterruptedException exception) {
+                        Thread.currentThread().interrupt();
+                    }
+                    SpringApplication.exit(applicationContext, () -> 0);
+                },
+                "study-sync-shutdown"
+        );
+        shutdownThread.setDaemon(true);
+        shutdownThread.start();
+        return ResponseEntity.accepted().build();
+    }
+
+    private boolean isLocalRequest(HttpServletRequest request) {
+        String address = request.getRemoteAddr();
+        return "127.0.0.1".equals(address)
+                || "0:0:0:0:0:0:0:1".equals(address)
+                || "::1".equals(address);
     }
 
     @PostMapping("/previous-week")

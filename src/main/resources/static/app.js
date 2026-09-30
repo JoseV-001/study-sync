@@ -59,6 +59,7 @@ const elements = {
     importAllButton: document.querySelector('#import-all-button'),
     importAllLabel: document.querySelector('#import-all-label'),
     refreshButton: document.querySelector('#refresh-button'),
+    shutdownButton: document.querySelector('#shutdown-button'),
     restoreBackupButton: document.querySelector('#restore-backup-button'),
     restoreBackupInput: document.querySelector('#restore-backup-input'),
     saveSettingsButton: document.querySelector('#save-settings-button'),
@@ -775,6 +776,27 @@ async function runSync(url, label) {
     }
 }
 
+async function shutdownApplication() {
+    if (!window.confirm('Deseja desligar o Study Sync agora?')) {
+        return;
+    }
+
+    elements.shutdownButton.disabled = true;
+    elements.shutdownButton.title = 'Desligando...';
+    try {
+        const response = await fetch('/sync/shutdown', { method: 'POST' });
+        if (!response.ok) {
+            throw new Error('Nao foi possivel desligar o Study Sync.');
+        }
+        elements.lastRefresh.textContent = 'Study Sync desligado';
+        document.title = 'Study Sync desligado';
+    } catch (error) {
+        elements.shutdownButton.disabled = false;
+        elements.shutdownButton.title = 'Desligar Study Sync';
+        window.alert(error.message);
+    }
+}
+
 function applyQuickFilter(days, button) {
     const end = new Date();
     const start = new Date(end);
@@ -789,6 +811,7 @@ function applyQuickFilter(days, button) {
 initializeAnalyticsFilters();
 document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => switchView(button.dataset.view)));
 elements.refreshButton.addEventListener('click', loadDashboard);
+elements.shutdownButton.addEventListener('click', shutdownApplication);
 elements.settingsForm.addEventListener('submit', saveSettings);
 elements.setupForm.addEventListener('submit', completeSetup);
 elements.setupFinishButton.addEventListener('click', () => {
