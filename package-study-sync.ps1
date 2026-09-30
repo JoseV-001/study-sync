@@ -76,6 +76,9 @@ if (-not (Test-Path -LiteralPath $executablePath)) {
     throw 'O executavel nao foi encontrado apos o empacotamento.'
 }
 
+Copy-Item -LiteralPath (Join-Path $projectPath 'stop-study-sync.bat') -Destination $appImagePath -Force
+Copy-Item -LiteralPath (Join-Path $projectPath 'stop-study-sync.ps1') -Destination $appImagePath -Force
+
 $archivePath = Join-Path $outputPath "StudySync-$appVersion-windows-x64.zip"
 Compress-Archive -LiteralPath $appImagePath -DestinationPath $archivePath -CompressionLevel Optimal -Force
 
