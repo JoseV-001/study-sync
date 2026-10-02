@@ -5,6 +5,7 @@ import com.josev001.study_sync.dto.SyncHistoryDto;
 import com.josev001.study_sync.dto.WeeklyStudyDto;
 import com.josev001.study_sync.dto.IntegrationSettingsDto;
 import com.josev001.study_sync.dto.IntegrationSettingsRequest;
+import com.josev001.study_sync.dto.DiagnosticsDto;
 import com.josev001.study_sync.dto.StudyAnalyticsDto;
 import com.josev001.study_sync.dto.StudyImportDto;
 import com.josev001.study_sync.dto.ClockifyConnectionDto;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.core.env.Environment;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.boot.SpringApplication;
 import jakarta.servlet.http.HttpServletRequest;
@@ -63,6 +65,7 @@ public class StudySyncController {
     private final SubjectGoalService subjectGoalService;
     private final BackupService backupService;
     private final ConfigurableApplicationContext applicationContext;
+    private final Environment environment;
 
     public StudySyncController(
             StudySyncService studySyncService,
@@ -73,7 +76,8 @@ public class StudySyncController {
             StudyEntryService studyEntryService,
             SubjectGoalService subjectGoalService,
             BackupService backupService,
-            ConfigurableApplicationContext applicationContext
+            ConfigurableApplicationContext applicationContext,
+            Environment environment
     ) {
         this.studySyncService = studySyncService;
         this.settingsService = settingsService;
@@ -84,6 +88,7 @@ public class StudySyncController {
         this.subjectGoalService = subjectGoalService;
         this.backupService = backupService;
         this.applicationContext = applicationContext;
+        this.environment = environment;
     }
 
     @PostMapping("/current-week")
@@ -159,6 +164,32 @@ public class StudySyncController {
     @GetMapping("/settings")
     public IntegrationSettingsDto getSettings() {
         return settingsService.getSettings();
+    }
+
+    @GetMapping("/diagnostics")
+    public DiagnosticsDto getDiagnostics() {
+        String version = StudySyncController.class.getPackage().getImplementationVersion();
+        if (!hasText(version)) {
+            version = "desenvolvimento";
+        }
+        int port = environment.getProperty(
+                "local.server.port",
+                Integer.class,
+                environment.getProperty("server.port", Integer.class, 3001)
+        );
+        String dataDirectory = environment.getProperty("study-sync.data-dir", "nao identificado");
+        String mode = Boolean.getBoolean("study-sync.desktop") ? "Executavel Windows" : "Codigo-fonte";
+        return new DiagnosticsDto(
+                version,
+                port,
+                dataDirectory,
+                Runtime.version().toString(),
+                System.getProperty("java.home", "nao identificado"),
+                System.getProperty("user.dir", "nao identificado"),
+                mode,
+                settingsService.getSettings().clockifyConfigured(),
+                settingsService.isNotionConfigured()
+        );
     }
 
     @PutMapping("/settings")

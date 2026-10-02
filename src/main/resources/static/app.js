@@ -32,6 +32,15 @@ const elements = {
     dailyGoalProgress: document.querySelector('#daily-goal-progress'),
     dailyGoalStatus: document.querySelector('#daily-goal-status'),
     dailyGoalTarget: document.querySelector('#daily-goal-target'),
+    diagnosticClockify: document.querySelector('#diagnostic-clockify'),
+    diagnosticDataDirectory: document.querySelector('#diagnostic-data-directory'),
+    diagnosticJavaHome: document.querySelector('#diagnostic-java-home'),
+    diagnosticJavaVersion: document.querySelector('#diagnostic-java-version'),
+    diagnosticMode: document.querySelector('#diagnostic-mode'),
+    diagnosticNotion: document.querySelector('#diagnostic-notion'),
+    diagnosticPort: document.querySelector('#diagnostic-port'),
+    diagnosticVersion: document.querySelector('#diagnostic-version'),
+    diagnosticWorkingDirectory: document.querySelector('#diagnostic-working-directory'),
     goalsForm: document.querySelector('#goals-form'),
     goalsMessage: document.querySelector('#goals-message'),
     goalsSettingsMessage: document.querySelector('#goals-settings-message'),
@@ -179,6 +188,18 @@ function renderSettings(settings, openSetup = false) {
     elements.setupGuide.hidden = settings.clockifyConfigured;
     elements.testClockifyButton.disabled = !settings.clockifyConfigured;
     if (!settings.clockifyConfigured && openSetup && !state.setupWasOpened) showSetup();
+}
+
+function renderDiagnostics(diagnostics) {
+    elements.diagnosticVersion.textContent = diagnostics.version;
+    elements.diagnosticPort.textContent = `localhost:${diagnostics.port}`;
+    elements.diagnosticMode.textContent = diagnostics.mode;
+    elements.diagnosticClockify.textContent = diagnostics.clockifyConfigured ? 'Configurado' : 'Pendente';
+    elements.diagnosticNotion.textContent = diagnostics.notionConfigured ? 'Configurado' : 'Nao configurado';
+    elements.diagnosticDataDirectory.textContent = diagnostics.dataDirectory;
+    elements.diagnosticWorkingDirectory.textContent = diagnostics.workingDirectory;
+    elements.diagnosticJavaVersion.textContent = diagnostics.javaVersion;
+    elements.diagnosticJavaHome.textContent = diagnostics.javaHome;
 }
 
 function showSetup() {
@@ -462,10 +483,11 @@ async function loadDashboard() {
     elements.settingsState.textContent = 'Verificando...';
     elements.analyticsState.textContent = 'Carregando...';
     try {
-        const [weeks, history, settings, analytics, goals, goalProgress, subjectGoals, knownSubjects] = await Promise.all([
+        const [weeks, history, settings, diagnostics, analytics, goals, goalProgress, subjectGoals, knownSubjects] = await Promise.all([
             fetchJson('/sync/weeks'),
             fetchJson('/sync/history'),
             fetchJson('/sync/settings'),
+            fetchJson('/sync/diagnostics'),
             fetchJson(analyticsUrl()),
             fetchJson('/sync/goals'),
             fetchJson('/sync/goals/progress'),
@@ -476,6 +498,7 @@ async function loadDashboard() {
         state.history = history;
         state.knownSubjects = knownSubjects;
         renderSettings(settings, true);
+        renderDiagnostics(diagnostics);
         renderGoalsSettings(goals);
         renderGoals(goalProgress);
         renderSubjectGoals(subjectGoals);

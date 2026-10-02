@@ -187,6 +187,12 @@ tbody tr:hover { background: rgba(139, 92, 246, 0.06); }
 
 .settings-panel { display: grid; grid-template-columns: minmax(220px, 0.75fr) minmax(360px, 1.25fr); gap: 50px; padding: 28px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
 .goals-settings-panel { margin-top: 18px; }
+.diagnostics-panel { margin-top: 18px; }
+.diagnostics-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; margin: 0; }
+.diagnostic-item { min-width: 0; padding: 11px 12px; border: 1px solid rgba(139, 92, 246, 0.2); background: #11161d; }
+.diagnostic-item-wide { grid-column: span 2; }
+.diagnostic-item dt { color: var(--muted); font-size: 0.68rem; font-weight: 800; }
+.diagnostic-item dd { margin: 5px 0 0; overflow: hidden; color: var(--ink); font-size: 0.75rem; text-overflow: ellipsis; white-space: nowrap; }
 .setup-guide { display: grid; grid-template-columns: minmax(220px, 0.8fr) minmax(360px, 1.4fr) auto; gap: 24px; align-items: center; padding: 22px 24px; margin-bottom: 18px; border: 1px solid rgba(168, 85, 247, 0.45); border-left: 4px solid var(--accent); background: linear-gradient(120deg, rgba(139, 92, 246, 0.12), var(--surface) 45%); box-shadow: var(--shadow); }
 .setup-guide-copy h2 { margin-bottom: 6px; }
 .setup-guide-copy p:not(.section-kicker) { max-width: 390px; margin: 0; color: var(--muted); font-size: 0.8rem; }
@@ -231,6 +237,8 @@ tbody tr:hover { background: rgba(139, 92, 246, 0.06); }
     .analytics-toolbar { flex-wrap: wrap; }
     .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .settings-panel { grid-template-columns: 1fr; gap: 26px; }
+    .diagnostics-grid { grid-template-columns: 1fr; }
+    .diagnostic-item-wide { grid-column: span 1; }
     .setup-guide { grid-template-columns: 1fr; }
     .subject-goal-settings-content { grid-template-columns: 1fr; }
 }
