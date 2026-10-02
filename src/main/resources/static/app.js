@@ -1,4 +1,4 @@
-const state = { weeks: [], history: [], analytics: null, knownSubjects: [], personalNotionEnabled: false, setupWasOpened: false };
+const state = { weeks: [], history: [], books: [], analytics: null, knownSubjects: [], personalNotionEnabled: false, setupWasOpened: false };
 
 const elements = {
     analyticsActiveDays: document.querySelector('#analytics-active-days'),
@@ -27,6 +27,18 @@ const elements = {
     saveAutomaticSyncButton: document.querySelector('#save-automatic-sync-button'),
     applyAnalyticsButton: document.querySelector('#apply-analytics-button'),
     averageHours: document.querySelector('#average-hours'),
+    bookAuthor: document.querySelector('#book-author'),
+    bookCurrentPage: document.querySelector('#book-current-page'),
+    bookForm: document.querySelector('#book-form'),
+    bookFormMessage: document.querySelector('#book-form-message'),
+    bookId: document.querySelector('#book-id'),
+    bookStatus: document.querySelector('#book-status'),
+    booksList: document.querySelector('#books-list'),
+    booksState: document.querySelector('#books-state'),
+    bookTargetDate: document.querySelector('#book-target-date'),
+    bookTitle: document.querySelector('#book-title'),
+    bookTotalPages: document.querySelector('#book-total-pages'),
+    cancelBookEditButton: document.querySelector('#cancel-book-edit-button'),
     backupMessage: document.querySelector('#backup-message'),
     clockifyApiKey: document.querySelector('#clockify-api-key'),
     clockifyTestMessage: document.querySelector('#clockify-test-message'),
@@ -119,6 +131,7 @@ const viewMeta = {
     overview: ['Visao geral', 'Acompanhe seu ritmo e sua constancia.'],
     analytics: ['Analises', 'Entenda os dias e horarios em que voce rende melhor.'],
     syncs: ['Sincronizacoes', 'Atualize os registros e acompanhe suas semanas.'],
+    books: ['Livros', 'Acompanhe suas leituras e seu progresso por paginas.'],
     history: ['Historico', 'Consulte todas as execucoes e eventuais falhas.'],
     settings: ['Configuracoes', 'Gerencie as integracoes usadas pelo Study Sync.']
 };
@@ -321,6 +334,136 @@ function renderSubjectGoals(goals) {
     renderSubjectGoalRows(elements.settingsSubjectGoalsList, goals);
 }
 
+function bookStatusLabel(status) {
+    return { PLANNED: 'Planejado', READING: 'Lendo', PAUSED: 'Pausado', COMPLETED: 'Concluido' }[status] || status;
+}
+
+function renderBooks(books) {
+    state.books = books;
+    elements.booksState.textContent = `${books.length} livro${books.length === 1 ? '' : 's'}`;
+    elements.booksList.innerHTML = '';
+    if (!books.length) {
+        const empty = document.createElement('p');
+        empty.className = 'empty-state';
+        empty.textContent = 'Nenhum livro cadastrado.';
+        elements.booksList.appendChild(empty);
+        return;
+    }
+
+    books.forEach((book) => {
+        const card = document.createElement('article');
+        card.className = 'book-card';
+        const heading = document.createElement('div');
+        heading.className = 'book-card-heading';
+        const titleWrap = document.createElement('div');
+        const title = document.createElement('h3');
+        title.textContent = book.title;
+        titleWrap.appendChild(title);
+        if (book.author) {
+            const author = document.createElement('p');
+            author.textContent = book.author;
+            titleWrap.appendChild(author);
+        }
+        const status = document.createElement('span');
+        status.className = `book-status book-status-${String(book.status).toLowerCase()}`;
+        status.textContent = bookStatusLabel(book.status);
+        heading.append(titleWrap, status);
+        const track = document.createElement('div');
+        track.className = 'goal-progress-track';
+        const fill = document.createElement('div');
+        fill.className = 'goal-progress-fill';
+        fill.style.setProperty('--goal-size', `${book.progressPercentage}%`);
+        track.appendChild(fill);
+        const details = document.createElement('div');
+        details.className = 'book-card-details';
+        const progress = document.createElement('strong');
+        progress.textContent = `${book.currentPage} de ${book.totalPages} paginas (${book.progressPercentage}%)`;
+        const target = document.createElement('span');
+        target.textContent = book.targetDate ? `Meta: ${formatDate(book.targetDate)}` : 'Sem meta de conclusao';
+        details.append(progress, target);
+        const actions = document.createElement('div');
+        actions.className = 'book-card-actions';
+        const edit = document.createElement('button');
+        edit.className = 'button button-secondary button-compact';
+        edit.type = 'button';
+        edit.dataset.bookAction = 'edit';
+        edit.dataset.bookId = book.id;
+        edit.textContent = 'Editar';
+        const remove = document.createElement('button');
+        remove.className = 'icon-button icon-button-small subject-goal-remove';
+        remove.type = 'button';
+        remove.dataset.bookAction = 'delete';
+        remove.dataset.bookId = book.id;
+        remove.title = `Remover ${book.title}`;
+        remove.setAttribute('aria-label', `Remover ${book.title}`);
+        remove.innerHTML = '<span class="icon icon-trash" aria-hidden="true"></span>';
+        actions.append(edit, remove);
+        card.append(heading, track, details, actions);
+        elements.booksList.appendChild(card);
+    });
+}
+
+function resetBookForm() {
+    elements.bookId.value = '';
+    elements.bookForm.reset();
+    elements.bookCurrentPage.value = '0';
+    elements.bookStatus.value = 'READING';
+    elements.cancelBookEditButton.hidden = true;
+    elements.bookFormMessage.textContent = 'Os livros ficam salvos localmente.';
+    elements.bookFormMessage.className = 'settings-message';
+}
+
+function editBook(book) {
+    elements.bookId.value = book.id;
+    elements.bookTitle.value = book.title;
+    elements.bookAuthor.value = book.author || '';
+    elements.bookTotalPages.value = book.totalPages;
+    elements.bookCurrentPage.value = book.currentPage;
+    elements.bookStatus.value = book.status;
+    elements.bookTargetDate.value = book.targetDate || '';
+    elements.cancelBookEditButton.hidden = false;
+    elements.bookTitle.focus();
+}
+
+async function saveBook(event) {
+    event.preventDefault();
+    elements.bookFormMessage.textContent = 'Salvando livro...';
+    elements.bookFormMessage.className = 'settings-message';
+    try {
+        const id = elements.bookId.value;
+        const response = await fetch(id ? `/sync/books/${id}` : '/sync/books', {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: elements.bookTitle.value.trim(),
+                author: elements.bookAuthor.value.trim(),
+                totalPages: Number(elements.bookTotalPages.value),
+                currentPage: Number(elements.bookCurrentPage.value),
+                status: elements.bookStatus.value,
+                targetDate: elements.bookTargetDate.value || null
+            })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Nao foi possivel salvar o livro.');
+        const books = await fetchJson('/sync/books');
+        renderBooks(books);
+        resetBookForm();
+        elements.bookFormMessage.textContent = 'Livro salvo com sucesso.';
+        elements.bookFormMessage.className = 'settings-message success-text';
+    } catch (error) {
+        elements.bookFormMessage.textContent = error.message;
+        elements.bookFormMessage.className = 'settings-message error-text';
+    }
+}
+
+async function deleteBook(id) {
+    if (!window.confirm('Remover este livro da sua estante?')) return;
+    const response = await fetch(`/sync/books/${id}`, { method: 'DELETE' });
+    const result = response.status === 204 ? null : await response.json();
+    if (!response.ok) throw new Error(result?.message || 'Nao foi possivel remover o livro.');
+    renderBooks(await fetchJson('/sync/books'));
+}
+
 function renderWeeks() {
     const weeks = state.weeks;
     const columnCount = state.personalNotionEnabled ? 4 : 3;
@@ -507,12 +650,13 @@ async function loadDashboard() {
     elements.settingsState.textContent = 'Verificando...';
     elements.analyticsState.textContent = 'Carregando...';
     try {
-        const [weeks, history, settings, diagnostics, automaticSync, analytics, goals, goalProgress, subjectGoals, knownSubjects] = await Promise.all([
+        const [weeks, history, settings, diagnostics, automaticSync, books, analytics, goals, goalProgress, subjectGoals, knownSubjects] = await Promise.all([
             fetchJson('/sync/weeks'),
             fetchJson('/sync/history'),
             fetchJson('/sync/settings'),
             fetchJson('/sync/diagnostics'),
             fetchJson('/sync/settings/automatic-sync'),
+            fetchJson('/sync/books'),
             fetchJson(analyticsUrl()),
             fetchJson('/sync/goals'),
             fetchJson('/sync/goals/progress'),
@@ -525,6 +669,7 @@ async function loadDashboard() {
         renderSettings(settings, true);
         renderDiagnostics(diagnostics);
         renderAutomaticSync(automaticSync);
+        renderBooks(books);
         renderGoalsSettings(goals);
         renderGoals(goalProgress);
         renderSubjectGoals(subjectGoals);
@@ -892,6 +1037,19 @@ elements.refreshButton.addEventListener('click', loadDashboard);
 elements.shutdownButton.addEventListener('click', shutdownApplication);
 elements.settingsForm.addEventListener('submit', saveSettings);
 elements.automaticSyncForm.addEventListener('submit', saveAutomaticSync);
+elements.bookForm.addEventListener('submit', saveBook);
+elements.cancelBookEditButton.addEventListener('click', resetBookForm);
+elements.booksList.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-book-action]');
+    if (!button) return;
+    const book = state.books.find((item) => String(item.id) === button.dataset.bookId);
+    if (!book) return;
+    if (button.dataset.bookAction === 'edit') editBook(book);
+    if (button.dataset.bookAction === 'delete') deleteBook(book.id).catch((error) => {
+        elements.bookFormMessage.textContent = error.message;
+        elements.bookFormMessage.className = 'settings-message error-text';
+    });
+});
 elements.setupForm.addEventListener('submit', completeSetup);
 elements.setupFinishButton.addEventListener('click', () => {
     closeSetup();

@@ -8,6 +8,8 @@ import com.josev001.study_sync.dto.IntegrationSettingsRequest;
 import com.josev001.study_sync.dto.DiagnosticsDto;
 import com.josev001.study_sync.dto.AutomaticSyncSettingsDto;
 import com.josev001.study_sync.dto.AutomaticSyncSettingsRequest;
+import com.josev001.study_sync.dto.BookDto;
+import com.josev001.study_sync.dto.BookRequest;
 import com.josev001.study_sync.dto.StudyAnalyticsDto;
 import com.josev001.study_sync.dto.StudyImportDto;
 import com.josev001.study_sync.dto.ClockifyConnectionDto;
@@ -29,6 +31,7 @@ import com.josev001.study_sync.service.StudyGoalService;
 import com.josev001.study_sync.service.StudyEntryService;
 import com.josev001.study_sync.service.SubjectGoalService;
 import com.josev001.study_sync.service.BackupService;
+import com.josev001.study_sync.service.BookService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -68,6 +71,7 @@ public class StudySyncController {
     private final BackupService backupService;
     private final ConfigurableApplicationContext applicationContext;
     private final Environment environment;
+    private final BookService bookService;
 
     public StudySyncController(
             StudySyncService studySyncService,
@@ -79,7 +83,8 @@ public class StudySyncController {
             SubjectGoalService subjectGoalService,
             BackupService backupService,
             ConfigurableApplicationContext applicationContext,
-            Environment environment
+            Environment environment,
+            BookService bookService
     ) {
         this.studySyncService = studySyncService;
         this.settingsService = settingsService;
@@ -91,6 +96,7 @@ public class StudySyncController {
         this.backupService = backupService;
         this.applicationContext = applicationContext;
         this.environment = environment;
+        this.bookService = bookService;
     }
 
     @PostMapping("/current-week")
@@ -166,6 +172,39 @@ public class StudySyncController {
     @GetMapping("/settings")
     public IntegrationSettingsDto getSettings() {
         return settingsService.getSettings();
+    }
+
+    @GetMapping("/books")
+    public List<BookDto> getBooks() {
+        return bookService.findAll();
+    }
+
+    @PostMapping("/books")
+    public ResponseEntity<?> createBook(@Valid @RequestBody BookRequest request) {
+        try {
+            return ResponseEntity.ok(bookService.save(request));
+        } catch (RuntimeException exception) {
+            return ResponseEntity.badRequest().body(new ApiErrorDto(exception.getMessage()));
+        }
+    }
+
+    @PutMapping("/books/{id}")
+    public ResponseEntity<?> updateBook(@PathVariable Long id, @Valid @RequestBody BookRequest request) {
+        try {
+            return ResponseEntity.ok(bookService.update(id, request));
+        } catch (RuntimeException exception) {
+            return ResponseEntity.badRequest().body(new ApiErrorDto(exception.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/books/{id}")
+    public ResponseEntity<?> deleteBook(@PathVariable Long id) {
+        try {
+            bookService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException exception) {
+            return ResponseEntity.badRequest().body(new ApiErrorDto(exception.getMessage()));
+        }
     }
 
     @GetMapping("/settings/automatic-sync")

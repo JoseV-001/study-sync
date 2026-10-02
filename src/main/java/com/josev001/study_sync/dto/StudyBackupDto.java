@@ -11,10 +11,12 @@ public record StudyBackupDto(
         List<WeeklyStudyBackupDto> weeklyStudies,
         List<SyncRunBackupDto> syncRuns,
         StudyGoalBackupDto studyGoal,
-        List<SubjectGoalBackupDto> subjectGoals
+        List<SubjectGoalBackupDto> subjectGoals,
+        List<BookBackupDto> books
 ) {
 
-    public static final String FORMAT = "study-sync-backup-v1";
+    public static final String FORMAT = "study-sync-backup-v2";
+    public static final String LEGACY_FORMAT = "study-sync-backup-v1";
 
     public record StudyEntryBackupDto(
             String clockifyEntryId,
@@ -58,5 +60,17 @@ public record StudyBackupDto(
     }
 
     public record SubjectGoalBackupDto(String subject, int weeklyMinutes) {
+    }
+
+    public record BookBackupDto(
+            String title,
+            String author,
+            int totalPages,
+            int currentPage,
+            String status,
+            LocalDate targetDate,
+            Instant createdAt,
+            Instant updatedAt
+    ) {
     }
 }

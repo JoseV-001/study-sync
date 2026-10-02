@@ -18,6 +18,7 @@
             <button class="nav-item active" type="button" data-view="overview"><span class="icon icon-dashboard" aria-hidden="true"></span><span>Visao geral</span></button>
             <button class="nav-item" type="button" data-view="analytics"><span class="icon icon-chart" aria-hidden="true"></span><span>Analises</span></button>
             <button class="nav-item" type="button" data-view="syncs"><span class="icon icon-sync" aria-hidden="true"></span><span>Sincronizacoes</span></button>
+            <button class="nav-item" type="button" data-view="books"><span class="icon icon-chart" aria-hidden="true"></span><span>Livros</span></button>
             <button class="nav-item" type="button" data-view="history"><span class="icon icon-history" aria-hidden="true"></span><span>Historico</span></button>
         </nav>
         <button class="nav-item nav-settings" type="button" data-view="settings"><span class="icon icon-settings" aria-hidden="true"></span><span>Configuracoes</span></button>
@@ -138,6 +139,23 @@
                 <section class="content-section content-section-first" aria-labelledby="history-title">
                     <div class="section-heading"><div><p class="section-kicker">AUDITORIA</p><h2 id="history-title">Historico de sincronizacoes</h2></div><span id="history-state" class="section-state">Carregando...</span></div>
                     <div class="table-wrap"><table><thead><tr><th>Semana</th><th>Origem</th><th>Status</th><th>Total</th><th>Executada em</th></tr></thead><tbody id="history-table-body"><tr><td colspan="5" class="empty-state">Carregando historico...</td></tr></tbody></table></div>
+                </section>
+            </section>
+
+            <section class="view-panel" data-panel="books" hidden>
+                <section class="view-intro"><div><p class="section-kicker">LEITURA</p><h2>Livros em acompanhamento</h2><p class="page-subtitle">Acompanhe sua pagina atual e a meta de conclusao.</p></div><span id="books-state" class="section-state">Carregando...</span></section>
+                <section class="books-layout">
+                    <form id="book-form" class="book-form" aria-labelledby="book-form-title">
+                        <div class="settings-copy"><p class="section-kicker">NOVO REGISTRO</p><h2 id="book-form-title">Adicionar livro</h2><p>Registre o livro e atualize seu progresso conforme avancar.</p></div>
+                        <input id="book-id" type="hidden">
+                        <label><span>Nome do livro</span><input id="book-title" type="text" maxlength="256" required placeholder="Ex.: Clean Code"></label>
+                        <label><span>Autor <em>(opcional)</em></span><input id="book-author" type="text" maxlength="256" placeholder="Ex.: Robert C. Martin"></label>
+                        <div class="book-form-grid"><label><span>Total de paginas</span><input id="book-total-pages" type="number" min="1" max="1000000" required placeholder="Ex.: 464"></label><label><span>Pagina atual</span><input id="book-current-page" type="number" min="0" required value="0"></label></div>
+                        <div class="book-form-grid"><label><span>Status</span><select id="book-status"><option value="PLANNED">Planejado</option><option value="READING" selected>Lendo</option><option value="PAUSED">Pausado</option><option value="COMPLETED">Concluido</option></select></label><label><span>Meta de conclusao <em>(opcional)</em></span><input id="book-target-date" type="date"></label></div>
+                        <div class="settings-actions"><button id="save-book-button" class="button button-primary" type="submit"><span class="icon icon-settings" aria-hidden="true"></span>Salvar livro</button><button id="cancel-book-edit-button" class="button button-secondary" type="button" hidden>Cancelar edicao</button></div>
+                        <p id="book-form-message" class="settings-message" aria-live="polite">Os livros ficam salvos localmente.</p>
+                    </form>
+                    <section class="books-list-panel" aria-labelledby="books-list-title"><div class="section-heading"><h2 id="books-list-title">Minha estante</h2><span class="section-state">Local</span></div><div id="books-list" class="books-list"><p class="empty-state">Nenhum livro cadastrado.</p></div></section>
                 </section>
             </section>
 

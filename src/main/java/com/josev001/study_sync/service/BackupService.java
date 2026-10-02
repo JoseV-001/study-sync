@@ -7,6 +7,8 @@ import com.josev001.study_sync.persistence.StudyGoal;
 import com.josev001.study_sync.persistence.StudyGoalRepository;
 import com.josev001.study_sync.persistence.SubjectGoal;
 import com.josev001.study_sync.persistence.SubjectGoalRepository;
+import com.josev001.study_sync.persistence.Book;
+import com.josev001.study_sync.persistence.BookRepository;
 import com.josev001.study_sync.persistence.SyncRun;
 import com.josev001.study_sync.persistence.SyncRunRepository;
 import com.josev001.study_sync.persistence.SyncRunStatus;
@@ -27,19 +29,22 @@ public class BackupService {
     private final SyncRunRepository syncRunRepository;
     private final StudyGoalRepository studyGoalRepository;
     private final SubjectGoalRepository subjectGoalRepository;
+    private final BookRepository bookRepository;
 
     public BackupService(
             StudyEntryRepository studyEntryRepository,
             WeeklyStudyRepository weeklyStudyRepository,
             SyncRunRepository syncRunRepository,
             StudyGoalRepository studyGoalRepository,
-            SubjectGoalRepository subjectGoalRepository
+            SubjectGoalRepository subjectGoalRepository,
+            BookRepository bookRepository
     ) {
         this.studyEntryRepository = studyEntryRepository;
         this.weeklyStudyRepository = weeklyStudyRepository;
         this.syncRunRepository = syncRunRepository;
         this.studyGoalRepository = studyGoalRepository;
         this.subjectGoalRepository = subjectGoalRepository;
+        this.bookRepository = bookRepository;
     }
 
     @Transactional(readOnly = true)
@@ -55,6 +60,9 @@ public class BackupService {
                         .orElse(null),
                 subjectGoalRepository.findAllByOrderBySubjectAsc().stream()
                         .map(goal -> new StudyBackupDto.SubjectGoalBackupDto(goal.getSubject(), goal.getWeeklyMinutes()))
+                        .toList(),
+                bookRepository.findAllByOrderByStatusAscTargetDateAscTitleAsc().stream()
+                        .map(this::toBookBackup)
                         .toList()
         );
     }
@@ -84,6 +92,7 @@ public class BackupService {
         syncRunRepository.deleteAllInBatch();
         weeklyStudyRepository.deleteAllInBatch();
         subjectGoalRepository.deleteAllInBatch();
+        bookRepository.deleteAllInBatch();
         studyGoalRepository.deleteAllInBatch();
         studyEntryRepository.deleteAllInBatch();
 
@@ -101,10 +110,16 @@ public class BackupService {
         subjectGoalRepository.saveAll(backup.subjectGoals().stream()
                 .map(goal -> new SubjectGoal(goal.subject(), goal.weeklyMinutes(), Instant.now()))
                 .toList());
+        if (backup.books() != null) {
+            bookRepository.saveAll(backup.books().stream()
+                    .map(this::toBook)
+                    .toList());
+        }
     }
 
     private void validateBackup(StudyBackupDto backup) {
-        if (backup == null || !StudyBackupDto.FORMAT.equals(backup.format())) {
+        if (backup == null || (!StudyBackupDto.FORMAT.equals(backup.format())
+                && !StudyBackupDto.LEGACY_FORMAT.equals(backup.format()))) {
             throw new IllegalArgumentException("Arquivo de backup invalido ou nao compativel.");
         }
         if (backup.studyEntries() == null || backup.weeklyStudies() == null
@@ -151,6 +166,20 @@ public class BackupService {
         return new SyncRun(
                 run.weekStart(), run.triggeredBy(), SyncRunStatus.valueOf(run.status().toUpperCase(Locale.ROOT)),
                 run.totalMinutes(), run.errorMessage(), run.createdAt(), run.finishedAt()
+        );
+    }
+
+    private StudyBackupDto.BookBackupDto toBookBackup(Book book) {
+        return new StudyBackupDto.BookBackupDto(
+                book.getTitle(), book.getAuthor(), book.getTotalPages(), book.getCurrentPage(),
+                book.getStatus(), book.getTargetDate(), book.getCreatedAt(), book.getUpdatedAt()
+        );
+    }
+
+    private Book toBook(StudyBackupDto.BookBackupDto book) {
+        return new Book(
+                book.title(), book.author(), book.totalPages(), book.currentPage(), book.status(),
+                book.targetDate(), book.createdAt(), book.updatedAt()
         );
     }
 
