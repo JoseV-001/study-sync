@@ -6,6 +6,8 @@ import com.josev001.study_sync.dto.WeeklyStudyDto;
 import com.josev001.study_sync.dto.IntegrationSettingsDto;
 import com.josev001.study_sync.dto.IntegrationSettingsRequest;
 import com.josev001.study_sync.dto.DiagnosticsDto;
+import com.josev001.study_sync.dto.AutomaticSyncSettingsDto;
+import com.josev001.study_sync.dto.AutomaticSyncSettingsRequest;
 import com.josev001.study_sync.dto.StudyAnalyticsDto;
 import com.josev001.study_sync.dto.StudyImportDto;
 import com.josev001.study_sync.dto.ClockifyConnectionDto;
@@ -164,6 +166,24 @@ public class StudySyncController {
     @GetMapping("/settings")
     public IntegrationSettingsDto getSettings() {
         return settingsService.getSettings();
+    }
+
+    @GetMapping("/settings/automatic-sync")
+    public AutomaticSyncSettingsDto getAutomaticSyncSettings() {
+        return settingsService.getAutomaticSyncSettings();
+    }
+
+    @PutMapping("/settings/automatic-sync")
+    public ResponseEntity<?> saveAutomaticSyncSettings(
+            @Valid @RequestBody AutomaticSyncSettingsRequest request
+    ) {
+        try {
+            return ResponseEntity.ok(settingsService.saveAutomaticSyncSettings(request));
+        } catch (RuntimeException exception) {
+            return ResponseEntity.badRequest().body(new ApiErrorDto(
+                    hasText(exception.getMessage()) ? exception.getMessage() : "Nao foi possivel salvar o agendamento."
+            ));
+        }
     }
 
     @GetMapping("/diagnostics")

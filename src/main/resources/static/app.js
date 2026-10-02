@@ -18,6 +18,13 @@ const elements = {
     analyticsTopSubject: document.querySelector('#analytics-top-subject'),
     analyticsTopSubjectDetail: document.querySelector('#analytics-top-subject-detail'),
     analyticsTotal: document.querySelector('#analytics-total'),
+    automaticSyncDay: document.querySelector('#automatic-sync-day'),
+    automaticSyncEnabled: document.querySelector('#automatic-sync-enabled'),
+    automaticSyncForm: document.querySelector('#automatic-sync-form'),
+    automaticSyncMessage: document.querySelector('#automatic-sync-message'),
+    automaticSyncOnStartup: document.querySelector('#automatic-sync-on-startup'),
+    automaticSyncTime: document.querySelector('#automatic-sync-time'),
+    saveAutomaticSyncButton: document.querySelector('#save-automatic-sync-button'),
     applyAnalyticsButton: document.querySelector('#apply-analytics-button'),
     averageHours: document.querySelector('#average-hours'),
     backupMessage: document.querySelector('#backup-message'),
@@ -200,6 +207,23 @@ function renderDiagnostics(diagnostics) {
     elements.diagnosticWorkingDirectory.textContent = diagnostics.workingDirectory;
     elements.diagnosticJavaVersion.textContent = diagnostics.javaVersion;
     elements.diagnosticJavaHome.textContent = diagnostics.javaHome;
+}
+
+function renderAutomaticSync(settings) {
+    elements.automaticSyncEnabled.checked = settings.enabled;
+    elements.automaticSyncOnStartup.checked = settings.syncOnStartup;
+    elements.automaticSyncDay.value = settings.dayOfWeek;
+    elements.automaticSyncTime.value = settings.time;
+    elements.automaticSyncMessage.textContent = settings.enabled
+        ? `Ativa para ${formatAutomaticSyncDay(settings.dayOfWeek)} as ${settings.time}.`
+        : 'Desativada. Os botoes manuais continuam disponiveis.';
+}
+
+function formatAutomaticSyncDay(day) {
+    return {
+        MONDAY: 'segundas-feiras', TUESDAY: 'tercas-feiras', WEDNESDAY: 'quartas-feiras',
+        THURSDAY: 'quintas-feiras', FRIDAY: 'sextas-feiras', SATURDAY: 'sabados', SUNDAY: 'domingos'
+    }[day] || day;
 }
 
 function showSetup() {
@@ -483,11 +507,12 @@ async function loadDashboard() {
     elements.settingsState.textContent = 'Verificando...';
     elements.analyticsState.textContent = 'Carregando...';
     try {
-        const [weeks, history, settings, diagnostics, analytics, goals, goalProgress, subjectGoals, knownSubjects] = await Promise.all([
+        const [weeks, history, settings, diagnostics, automaticSync, analytics, goals, goalProgress, subjectGoals, knownSubjects] = await Promise.all([
             fetchJson('/sync/weeks'),
             fetchJson('/sync/history'),
             fetchJson('/sync/settings'),
             fetchJson('/sync/diagnostics'),
+            fetchJson('/sync/settings/automatic-sync'),
             fetchJson(analyticsUrl()),
             fetchJson('/sync/goals'),
             fetchJson('/sync/goals/progress'),
@@ -499,6 +524,7 @@ async function loadDashboard() {
         state.knownSubjects = knownSubjects;
         renderSettings(settings, true);
         renderDiagnostics(diagnostics);
+        renderAutomaticSync(automaticSync);
         renderGoalsSettings(goals);
         renderGoals(goalProgress);
         renderSubjectGoals(subjectGoals);
@@ -684,6 +710,35 @@ async function connectClockify(apiKey) {
     return result;
 }
 
+async function saveAutomaticSync(event) {
+    event.preventDefault();
+    elements.saveAutomaticSyncButton.disabled = true;
+    elements.automaticSyncMessage.textContent = 'Salvando automacao...';
+    elements.automaticSyncMessage.className = 'settings-message';
+    try {
+        const response = await fetch('/sync/settings/automatic-sync', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                enabled: elements.automaticSyncEnabled.checked,
+                syncOnStartup: elements.automaticSyncOnStartup.checked,
+                dayOfWeek: elements.automaticSyncDay.value,
+                time: elements.automaticSyncTime.value
+            })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Nao foi possivel salvar a automacao.');
+        renderAutomaticSync(result);
+        elements.automaticSyncMessage.textContent = 'Automacao atualizada com sucesso.';
+        elements.automaticSyncMessage.className = 'settings-message success-text';
+    } catch (error) {
+        elements.automaticSyncMessage.textContent = error.message;
+        elements.automaticSyncMessage.className = 'settings-message error-text';
+    } finally {
+        elements.saveAutomaticSyncButton.disabled = false;
+    }
+}
+
 async function completeSetup(event) {
     event.preventDefault();
     elements.setupConnectButton.disabled = true;
@@ -836,6 +891,7 @@ document.querySelectorAll('[data-view]').forEach((button) => button.addEventList
 elements.refreshButton.addEventListener('click', loadDashboard);
 elements.shutdownButton.addEventListener('click', shutdownApplication);
 elements.settingsForm.addEventListener('submit', saveSettings);
+elements.automaticSyncForm.addEventListener('submit', saveAutomaticSync);
 elements.setupForm.addEventListener('submit', completeSetup);
 elements.setupFinishButton.addEventListener('click', () => {
     closeSetup();

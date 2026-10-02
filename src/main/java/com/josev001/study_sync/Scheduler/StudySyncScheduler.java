@@ -11,6 +11,9 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 @Component
 public class StudySyncScheduler {
 
@@ -36,13 +39,13 @@ public class StudySyncScheduler {
 
     @EventListener(ApplicationReadyEvent.class)
     public void syncOnStartup() {
-        if (syncOnStartup) {
+        if (syncOnStartup && settingsService.shouldSyncOnStartup()) {
             syncPreviousWeek("startup");
         }
     }
 
     @Scheduled(
-            cron = "${study-sync.schedule.cron:0 0 20 * * MON}",
+            cron = "0 * * * * *",
             zone = "${study-sync.schedule.zone:America/Sao_Paulo}"
     )
 
@@ -50,30 +53,43 @@ public class StudySyncScheduler {
         if (!scheduleEnabled) {
             return;
         }
-
-        syncPreviousWeek("scheduler");
-    }
-
-    private void syncPreviousWeek(String trigger) {
-        if (!settingsService.getSettings().clockifyConfigured()) {
-            logger.info("Sincronizacao {} ignorada: Clockify ainda nao foi configurado.", trigger);
+        ZoneId zone = ZoneId.of("America/Sao_Paulo");
+        LocalDateTime now = LocalDateTime.now(zone).withSecond(0).withNano(0);
+        if (!settingsService.shouldRunAutomaticSync(now.getDayOfWeek(), now.toLocalTime())) {
             return;
         }
 
-        try {
-        SyncResultDto result = studySyncService.syncPreviousWeek(trigger);
+        String runKey = now.toLocalDate() + "-" + now.toLocalTime();
+        if (settingsService.hasAutomaticSyncRun(runKey)) {
+            return;
+        }
+        if (syncPreviousWeek("scheduler")) {
+            settingsService.markAutomaticSyncRun(runKey);
+        }
+    }
 
-        logger.info(
-                "Horas sincronizadas {} com o Notion para a semana "
-                        + result.weekStartDate() + " a " + result.weekEndDate()
-                        + ": " + result.syncedTime(),
-                trigger
-        );
+    private boolean syncPreviousWeek(String trigger) {
+        if (!settingsService.getSettings().clockifyConfigured()) {
+            logger.info("Sincronizacao {} ignorada: Clockify ainda nao foi configurado.", trigger);
+            return false;
+        }
+
+        try {
+            SyncResultDto result = studySyncService.syncPreviousWeek(trigger);
+
+            logger.info(
+                    "Horas sincronizadas {} com o Notion para a semana "
+                            + result.weekStartDate() + " a " + result.weekEndDate()
+                            + ": " + result.syncedTime(),
+                    trigger
+            );
+            return true;
         } catch (Exception e) {
             logger.error(
                     "Erro ao sincronizar horas estudadas com o Notion",
                     e
             );
+            return false;
         }
     }
 }

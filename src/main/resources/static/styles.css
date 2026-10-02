@@ -187,6 +187,12 @@ tbody tr:hover { background: rgba(139, 92, 246, 0.06); }
 
 .settings-panel { display: grid; grid-template-columns: minmax(220px, 0.75fr) minmax(360px, 1.25fr); gap: 50px; padding: 28px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
 .goals-settings-panel { margin-top: 18px; }
+.automatic-sync-settings-panel { margin-top: 18px; }
+.settings-inline-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(130px, 0.7fr); gap: 12px; }
+.toggle-field { grid-template-columns: auto 1fr; column-gap: 10px; align-items: center; }
+.toggle-field input { grid-column: 1; grid-row: 1 / span 2; width: 18px; height: 18px; accent-color: var(--accent); }
+.toggle-field > span, .toggle-field .field-note { grid-column: 2; }
+.toggle-field .field-note { grid-row: 2; }
 .diagnostics-panel { margin-top: 18px; }
 .diagnostics-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; margin: 0; }
 .diagnostic-item { min-width: 0; padding: 11px 12px; border: 1px solid rgba(139, 92, 246, 0.2); background: #11161d; }
@@ -239,6 +245,7 @@ tbody tr:hover { background: rgba(139, 92, 246, 0.06); }
     .settings-panel { grid-template-columns: 1fr; gap: 26px; }
     .diagnostics-grid { grid-template-columns: 1fr; }
     .diagnostic-item-wide { grid-column: span 1; }
+    .settings-inline-fields { grid-template-columns: 1fr; }
     .setup-guide { grid-template-columns: 1fr; }
     .subject-goal-settings-content { grid-template-columns: 1fr; }
 }
