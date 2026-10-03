@@ -132,7 +132,7 @@ public class BackupService {
         return new StudyBackupDto.StudyEntryBackupDto(
                 entry.getClockifyEntryId(), entry.getProjectId(), entry.getTaskId(), entry.getProjectName(),
                 entry.getTopicName(), entry.getTagIds(), entry.getTagNames(), entry.getDescription(),
-                entry.getSubject(), entry.getStartedAt(), entry.getEndedAt(), entry.getDurationMinutes(),
+                entry.getSubject(), entry.getSubjectSource(), entry.getStartedAt(), entry.getEndedAt(), entry.getDurationMinutes(),
                 entry.getRecordedDate(), entry.getSyncedAt()
         );
     }
@@ -153,7 +153,8 @@ public class BackupService {
     private StudyEntry toStudyEntry(StudyBackupDto.StudyEntryBackupDto entry) {
         return new StudyEntry(
                 entry.clockifyEntryId(), entry.projectId(), entry.taskId(), entry.projectName(), entry.topicName(),
-                entry.tagIds(), entry.tagNames(), entry.description(), entry.subject(), entry.startedAt(), entry.endedAt(),
+                entry.tagIds(), entry.tagNames(), entry.description(), entry.subject(),
+                entry.subjectSource() == null ? "Descricao" : entry.subjectSource(), entry.startedAt(), entry.endedAt(),
                 entry.durationMinutes(), entry.recordedDate(), entry.syncedAt()
         );
     }

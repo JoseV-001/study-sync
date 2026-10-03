@@ -3,6 +3,7 @@ package com.josev001.study_sync.service;
 import com.josev001.study_sync.dto.ClockifyEntryMetadataDto;
 import com.josev001.study_sync.dto.StudyEntryStoreResult;
 import com.josev001.study_sync.dto.SubjectSuggestionDto;
+import com.josev001.study_sync.dto.SubjectClassification;
 import com.josev001.study_sync.dto.TimeEntryDto;
 import com.josev001.study_sync.persistence.StudyEntry;
 import com.josev001.study_sync.persistence.StudyEntryRepository;
@@ -61,7 +62,7 @@ public class StudyEntryService {
             ClockifyEntryMetadataDto metadata = clockifyMetadataService.resolve(entry);
             String tagIds = join(entry.tagIds());
             String tagNames = join(metadata.tagNames());
-            String subject = getSubject(entry, metadata);
+            SubjectClassification classification = classify(entry, metadata);
 
             Optional<StudyEntry> existingEntry = studyEntryRepository.findById(entry.id());
             if (existingEntry.isPresent()) {
@@ -74,7 +75,8 @@ public class StudyEntryService {
                                     tagIds,
                                     tagNames,
                                     entry.description(),
-                                    subject,
+                                    classification.name(),
+                                    classification.source(),
                                     startedAt,
                                     endedAt,
                                     durationMinutes,
@@ -92,7 +94,8 @@ public class StudyEntryService {
                                     tagIds,
                                     tagNames,
                                     entry.description(),
-                                    subject,
+                                    classification.name(),
+                                    classification.source(),
                                     startedAt,
                                     endedAt,
                                     durationMinutes,
@@ -110,6 +113,20 @@ public class StudyEntryService {
         Instant rangeStart = from.atStartOfDay(APP_ZONE).toInstant();
         Instant rangeEnd = to.plusDays(1).atStartOfDay(APP_ZONE).toInstant();
         return studyEntryRepository.findByStartedAtLessThanAndEndedAtGreaterThan(rangeEnd, rangeStart);
+    }
+
+    @Transactional
+    public int reclassifyStoredEntries() {
+        Instant now = Instant.now();
+        int changed = 0;
+        for (StudyEntry entry : studyEntryRepository.findAll()) {
+            SubjectClassification classification = classify(entry.getTopicName(), entry.getTagNames(), entry.getProjectName(), entry.getDescription());
+            if (!classification.name().equals(entry.getSubject()) || !classification.source().equals(entry.getSubjectSource())) {
+                entry.updateClassification(classification.name(), classification.source(), now);
+                changed++;
+            }
+        }
+        return changed;
     }
 
     @Transactional(readOnly = true)
@@ -146,20 +163,28 @@ public class StudyEntryService {
                 && entry.timeInterval().duration() != null;
     }
 
-    private String getSubject(TimeEntryDto entry, ClockifyEntryMetadataDto metadata) {
-        if (hasText(metadata.topicName())) {
-            return limit(metadata.topicName());
-        }
-        if (metadata.tagNames() != null && !metadata.tagNames().isEmpty()) {
-            return limit(String.join(" + ", metadata.tagNames()));
-        }
-        if (hasText(entry.description())) {
-            return limit(entry.description());
-        }
-        if (hasText(metadata.projectName())) {
-            return limit(metadata.projectName());
-        }
-        return "Sem materia";
+    private SubjectClassification classify(TimeEntryDto entry, ClockifyEntryMetadataDto metadata) {
+        return classify(metadata.topicName(), join(metadata.tagNames()), metadata.projectName(), entry.description());
+    }
+
+    private SubjectClassification classify(String topic, String tags, String project, String description) {
+        if (hasText(topic)) return new SubjectClassification(limit(topic), "Topico");
+        String firstTag = firstTag(tags);
+        if (hasText(firstTag)) return new SubjectClassification(limit(firstTag), "Tag");
+        if (hasText(project)) return new SubjectClassification(limit(project), "Projeto");
+        if (isUsefulDescription(description)) return new SubjectClassification(limit(description), "Descricao");
+        return new SubjectClassification("Sem materia", "Sem classificacao");
+    }
+
+    private String firstTag(String tags) {
+        if (!hasText(tags)) return null;
+        return tags.split(",")[0].trim();
+    }
+
+    private boolean isUsefulDescription(String description) {
+        if (!hasText(description)) return false;
+        String normalized = description.trim().toLowerCase(Locale.ROOT);
+        return !List.of("what are you working on?", "add task", "add tag", "time entry").contains(normalized);
     }
 
     private String join(List<String> values) {

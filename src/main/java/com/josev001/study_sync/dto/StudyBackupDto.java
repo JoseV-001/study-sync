@@ -28,6 +28,7 @@ public record StudyBackupDto(
             String tagNames,
             String description,
             String subject,
+            String subjectSource,
             Instant startedAt,
             Instant endedAt,
             long durationMinutes,

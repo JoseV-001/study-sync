@@ -10,6 +10,7 @@ import com.josev001.study_sync.dto.AutomaticSyncSettingsDto;
 import com.josev001.study_sync.dto.AutomaticSyncSettingsRequest;
 import com.josev001.study_sync.dto.BookDto;
 import com.josev001.study_sync.dto.BookRequest;
+import com.josev001.study_sync.dto.SubjectReclassificationDto;
 import com.josev001.study_sync.dto.StudyAnalyticsDto;
 import com.josev001.study_sync.dto.StudyImportDto;
 import com.josev001.study_sync.dto.ClockifyConnectionDto;
@@ -330,6 +331,11 @@ public class StudySyncController {
     @GetMapping("/subjects")
     public List<SubjectSuggestionDto> getKnownSubjects() {
         return studyEntryService.getKnownSubjects();
+    }
+
+    @PostMapping("/subjects/reclassify")
+    public SubjectReclassificationDto reclassifySubjects() {
+        return new SubjectReclassificationDto(studyEntryService.reclassifyStoredEntries());
     }
 
     @PostMapping("/goals/subjects")

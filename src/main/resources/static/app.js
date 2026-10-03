@@ -88,6 +88,7 @@ const elements = {
     importAllButton: document.querySelector('#import-all-button'),
     importAllLabel: document.querySelector('#import-all-label'),
     refreshButton: document.querySelector('#refresh-button'),
+    reclassifySubjectsButton: document.querySelector('#reclassify-subjects-button'),
     shutdownButton: document.querySelector('#shutdown-button'),
     restoreBackupButton: document.querySelector('#restore-backup-button'),
     restoreBackupInput: document.querySelector('#restore-backup-input'),
@@ -470,6 +471,24 @@ async function deleteBook(id) {
     const result = response.status === 204 ? null : await response.json();
     if (!response.ok) throw new Error(result?.message || 'Nao foi possivel remover o livro.');
     renderBooks(await fetchJson('/sync/books'));
+}
+
+async function reclassifySubjects() {
+    elements.reclassifySubjectsButton.disabled = true;
+    elements.syncMessage.textContent = 'Organizando materias, topicos, projetos e tags...';
+    elements.syncMessage.className = 'muted';
+    try {
+        const response = await fetch('/sync/subjects/reclassify', { method: 'POST' });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Nao foi possivel organizar as materias.');
+        elements.syncMessage.textContent = `${result.updatedEntries} registro${result.updatedEntries === 1 ? '' : 's'} reclassificado${result.updatedEntries === 1 ? '' : 's'}.`;
+        await loadDashboard();
+    } catch (error) {
+        elements.syncMessage.textContent = error.message;
+        elements.syncMessage.className = 'muted error-text';
+    } finally {
+        elements.reclassifySubjectsButton.disabled = false;
+    }
 }
 
 function renderWeeks() {
@@ -1090,6 +1109,7 @@ elements.applyAnalyticsButton.addEventListener('click', loadDashboard);
 elements.analyticsGranularity.addEventListener('change', () => state.analytics && renderAnalytics(state.analytics));
 elements.importAnalyticsButton.addEventListener('click', importAnalyticsPeriod);
 elements.importAllButton.addEventListener('click', importAllHistory);
+elements.reclassifySubjectsButton.addEventListener('click', reclassifySubjects);
 document.querySelectorAll('.filter-button').forEach((button) => button.addEventListener('click', () => applyQuickFilter(Number(button.dataset.days), button)));
 elements.previousWeekButton.addEventListener('click', () => runSync('/sync/previous-week', 'Sincronizacao da semana anterior'));
 elements.currentWeekButton.addEventListener('click', () => runSync('/sync/current-week', 'Sincronizacao da semana atual'));

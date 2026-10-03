@@ -40,6 +40,9 @@ public class StudyEntry {
     @Column(nullable = false, length = 256)
     private String subject;
 
+    @Column(name = "subject_source", nullable = false, length = 32)
+    private String subjectSource;
+
     @Column(name = "started_at", nullable = false)
     private Instant startedAt;
 
@@ -74,6 +77,27 @@ public class StudyEntry {
             LocalDate recordedDate,
             Instant syncedAt
     ) {
+        this(clockifyEntryId, projectId, taskId, projectName, topicName, tagIds, tagNames, description,
+                subject, "Descricao", startedAt, endedAt, durationMinutes, recordedDate, syncedAt);
+    }
+
+    public StudyEntry(
+            String clockifyEntryId,
+            String projectId,
+            String taskId,
+            String projectName,
+            String topicName,
+            String tagIds,
+            String tagNames,
+            String description,
+            String subject,
+            String subjectSource,
+            Instant startedAt,
+            Instant endedAt,
+            long durationMinutes,
+            LocalDate recordedDate,
+            Instant syncedAt
+    ) {
         this.clockifyEntryId = clockifyEntryId;
         this.projectId = projectId;
         this.taskId = taskId;
@@ -83,6 +107,7 @@ public class StudyEntry {
         this.tagNames = tagNames;
         this.description = description;
         this.subject = subject;
+        this.subjectSource = subjectSource;
         this.startedAt = startedAt;
         this.endedAt = endedAt;
         this.durationMinutes = durationMinutes;
@@ -112,6 +137,7 @@ public class StudyEntry {
                 null,
                 description,
                 subject,
+                "Descricao",
                 startedAt,
                 endedAt,
                 durationMinutes,
@@ -129,6 +155,7 @@ public class StudyEntry {
             String tagNames,
             String description,
             String subject,
+            String subjectSource,
             Instant startedAt,
             Instant endedAt,
             long durationMinutes,
@@ -143,6 +170,7 @@ public class StudyEntry {
         this.tagNames = tagNames;
         this.description = description;
         this.subject = subject;
+        this.subjectSource = subjectSource;
         this.startedAt = startedAt;
         this.endedAt = endedAt;
         this.durationMinutes = durationMinutes;
@@ -152,6 +180,16 @@ public class StudyEntry {
 
     public String getSubject() {
         return subject;
+    }
+
+    public String getSubjectSource() {
+        return subjectSource;
+    }
+
+    public void updateClassification(String subject, String subjectSource, Instant syncedAt) {
+        this.subject = subject;
+        this.subjectSource = subjectSource;
+        this.syncedAt = syncedAt;
     }
 
     public String getClockifyEntryId() {

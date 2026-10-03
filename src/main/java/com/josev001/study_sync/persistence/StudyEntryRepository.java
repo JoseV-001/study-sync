@@ -2,11 +2,15 @@ package com.josev001.study_sync.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import com.josev001.study_sync.dto.SubjectSuggestionDto;
 
 import java.time.Instant;
 import java.util.List;
 
 public interface StudyEntryRepository extends JpaRepository<StudyEntry, String> {
+
+    @Query("select distinct new com.josev001.study_sync.dto.SubjectSuggestionDto(entry.subject, entry.subjectSource) from StudyEntry entry where entry.subject is not null and trim(entry.subject) <> '' order by entry.subject")
+    List<SubjectSuggestionDto> findDistinctSubjectSuggestions();
 
     List<StudyEntry> findAllByOrderByStartedAtAsc();
 
