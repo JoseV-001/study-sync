@@ -16,8 +16,15 @@ import com.josev001.study_sync.persistence.WeeklyStudy;
 import com.josev001.study_sync.persistence.WeeklyStudyRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -30,6 +37,8 @@ public class BackupService {
     private final StudyGoalRepository studyGoalRepository;
     private final SubjectGoalRepository subjectGoalRepository;
     private final BookRepository bookRepository;
+    private final ObjectMapper objectMapper;
+    private final BackupSettingsService backupSettingsService;
 
     public BackupService(
             StudyEntryRepository studyEntryRepository,
@@ -37,7 +46,9 @@ public class BackupService {
             SyncRunRepository syncRunRepository,
             StudyGoalRepository studyGoalRepository,
             SubjectGoalRepository subjectGoalRepository,
-            BookRepository bookRepository
+            BookRepository bookRepository,
+            ObjectMapper objectMapper,
+            BackupSettingsService backupSettingsService
     ) {
         this.studyEntryRepository = studyEntryRepository;
         this.weeklyStudyRepository = weeklyStudyRepository;
@@ -45,6 +56,8 @@ public class BackupService {
         this.studyGoalRepository = studyGoalRepository;
         this.subjectGoalRepository = subjectGoalRepository;
         this.bookRepository = bookRepository;
+        this.objectMapper = objectMapper;
+        this.backupSettingsService = backupSettingsService;
     }
 
     @Transactional(readOnly = true)
@@ -83,6 +96,42 @@ public class BackupService {
                     .append(csvValue(entry.getDescription())).append('\n');
         }
         return csv.toString();
+    }
+
+    @Transactional
+    public com.josev001.study_sync.dto.AutomaticBackupResultDto createAutomaticBackup() {
+        Path directory = backupSettingsService.getBackupDirectory();
+        try {
+            Files.createDirectories(directory);
+            String timestamp = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"))
+                    .toString().replace(":", "-");
+            String fileName = "study-sync-backup-" + timestamp + ".json";
+            Path file = directory.resolve(fileName);
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(file.toFile(), createBackup());
+
+            int retention = backupSettingsService.getSettings().retention();
+            List<Path> files;
+            try (var stream = Files.list(directory)) {
+                files = stream
+                        .filter(path -> path.getFileName().toString().startsWith("study-sync-backup-"))
+                        .filter(path -> path.getFileName().toString().endsWith(".json"))
+                        .sorted(Comparator.comparing(Path::toString).reversed())
+                        .toList();
+            }
+            files.stream().skip(retention).forEach(this::deleteBackupQuietly);
+            backupSettingsService.markBackup(fileName);
+            return new com.josev001.study_sync.dto.AutomaticBackupResultDto(fileName, directory.toString(), Math.min(files.size(), retention));
+        } catch (IOException exception) {
+            throw new IllegalStateException("Nao foi possivel criar o backup automatico.", exception);
+        }
+    }
+
+    private void deleteBackupQuietly(Path file) {
+        try {
+            Files.deleteIfExists(file);
+        } catch (IOException exception) {
+            throw new IllegalStateException("Nao foi possivel limpar backups antigos.", exception);
+        }
     }
 
     @Transactional

@@ -41,6 +41,12 @@ const elements = {
     bookTotalPages: document.querySelector('#book-total-pages'),
     cancelBookEditButton: document.querySelector('#cancel-book-edit-button'),
     backupMessage: document.querySelector('#backup-message'),
+    automaticBackupEnabled: document.querySelector('#automatic-backup-enabled'),
+    automaticBackupRetention: document.querySelector('#automatic-backup-retention'),
+    automaticBackupTime: document.querySelector('#automatic-backup-time'),
+    backupSettingsForm: document.querySelector('#backup-settings-form'),
+    createBackupNowButton: document.querySelector('#create-backup-now-button'),
+    saveBackupSettingsButton: document.querySelector('#save-backup-settings-button'),
     clockifyApiKey: document.querySelector('#clockify-api-key'),
     clockifyTestMessage: document.querySelector('#clockify-test-message'),
     testClockifyButton: document.querySelector('#test-clockify-button'),
@@ -232,6 +238,13 @@ function renderAutomaticSync(settings) {
     elements.automaticSyncMessage.textContent = settings.enabled
         ? `Ativa para ${formatAutomaticSyncDay(settings.dayOfWeek)} as ${settings.time}.`
         : 'Desativada. Os botoes manuais continuam disponiveis.';
+}
+
+function renderBackupSettings(settings) {
+    elements.automaticBackupEnabled.checked = settings.enabled;
+    elements.automaticBackupTime.value = settings.time;
+    elements.automaticBackupRetention.value = settings.retention;
+    elements.backupMessage.textContent = `${settings.enabled ? `Ativo as ${settings.time}.` : 'Desativado.'} Ultimo backup: ${settings.lastBackup}. Pasta: ${settings.directory}`;
 }
 
 function formatAutomaticSyncDay(day) {
@@ -677,12 +690,13 @@ async function loadDashboard() {
     elements.settingsState.textContent = 'Verificando...';
     elements.analyticsState.textContent = 'Carregando...';
     try {
-        const [weeks, history, settings, diagnostics, automaticSync, books, analytics, goals, goalProgress, subjectGoals, knownSubjects] = await Promise.all([
+        const [weeks, history, settings, diagnostics, automaticSync, backupSettings, books, analytics, goals, goalProgress, subjectGoals, knownSubjects] = await Promise.all([
             fetchJson('/sync/weeks'),
             fetchJson('/sync/history'),
             fetchJson('/sync/settings'),
             fetchJson('/sync/diagnostics'),
             fetchJson('/sync/settings/automatic-sync'),
+            fetchJson('/sync/settings/backups'),
             fetchJson('/sync/books'),
             fetchJson(analyticsUrl()),
             fetchJson('/sync/goals'),
@@ -696,6 +710,7 @@ async function loadDashboard() {
         renderSettings(settings, true);
         renderDiagnostics(diagnostics);
         renderAutomaticSync(automaticSync);
+        renderBackupSettings(backupSettings);
         renderBooks(books);
         renderGoalsSettings(goals);
         renderGoals(goalProgress);
@@ -911,6 +926,54 @@ async function saveAutomaticSync(event) {
     }
 }
 
+async function saveBackupSettings(event) {
+    event.preventDefault();
+    elements.saveBackupSettingsButton.disabled = true;
+    elements.backupMessage.textContent = 'Salvando configuracao de backup...';
+    elements.backupMessage.className = 'settings-message';
+    try {
+        const response = await fetch('/sync/settings/backups', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                enabled: elements.automaticBackupEnabled.checked,
+                time: elements.automaticBackupTime.value,
+                retention: Number(elements.automaticBackupRetention.value)
+            })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Nao foi possivel salvar o backup automatico.');
+        renderBackupSettings(result);
+        elements.backupMessage.textContent = 'Configuracao de backup atualizada com sucesso.';
+        elements.backupMessage.className = 'settings-message success-text';
+    } catch (error) {
+        elements.backupMessage.textContent = error.message;
+        elements.backupMessage.className = 'settings-message error-text';
+    } finally {
+        elements.saveBackupSettingsButton.disabled = false;
+    }
+}
+
+async function createBackupNow() {
+    elements.createBackupNowButton.disabled = true;
+    elements.backupMessage.textContent = 'Criando backup local...';
+    elements.backupMessage.className = 'settings-message';
+    try {
+        const response = await fetch('/sync/backup/automatic', { method: 'POST' });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Nao foi possivel criar o backup.');
+        const settings = await fetchJson('/sync/settings/backups');
+        renderBackupSettings(settings);
+        elements.backupMessage.textContent = `Backup criado: ${result.fileName}`;
+        elements.backupMessage.className = 'settings-message success-text';
+    } catch (error) {
+        elements.backupMessage.textContent = error.message;
+        elements.backupMessage.className = 'settings-message error-text';
+    } finally {
+        elements.createBackupNowButton.disabled = false;
+    }
+}
+
 async function completeSetup(event) {
     event.preventDefault();
     elements.setupConnectButton.disabled = true;
@@ -1064,6 +1127,8 @@ elements.refreshButton.addEventListener('click', loadDashboard);
 elements.shutdownButton.addEventListener('click', shutdownApplication);
 elements.settingsForm.addEventListener('submit', saveSettings);
 elements.automaticSyncForm.addEventListener('submit', saveAutomaticSync);
+elements.backupSettingsForm.addEventListener('submit', saveBackupSettings);
+elements.createBackupNowButton.addEventListener('click', createBackupNow);
 elements.bookForm.addEventListener('submit', saveBook);
 elements.cancelBookEditButton.addEventListener('click', resetBookForm);
 elements.booksList.addEventListener('click', (event) => {

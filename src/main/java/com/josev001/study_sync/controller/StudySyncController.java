@@ -11,6 +11,9 @@ import com.josev001.study_sync.dto.AutomaticSyncSettingsRequest;
 import com.josev001.study_sync.dto.BookDto;
 import com.josev001.study_sync.dto.BookRequest;
 import com.josev001.study_sync.dto.SubjectReclassificationDto;
+import com.josev001.study_sync.dto.BackupSettingsDto;
+import com.josev001.study_sync.dto.BackupSettingsRequest;
+import com.josev001.study_sync.dto.AutomaticBackupResultDto;
 import com.josev001.study_sync.dto.StudyAnalyticsDto;
 import com.josev001.study_sync.dto.StudyImportDto;
 import com.josev001.study_sync.dto.ClockifyConnectionDto;
@@ -33,6 +36,7 @@ import com.josev001.study_sync.service.StudyEntryService;
 import com.josev001.study_sync.service.SubjectGoalService;
 import com.josev001.study_sync.service.BackupService;
 import com.josev001.study_sync.service.BookService;
+import com.josev001.study_sync.service.BackupSettingsService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -73,6 +77,7 @@ public class StudySyncController {
     private final ConfigurableApplicationContext applicationContext;
     private final Environment environment;
     private final BookService bookService;
+    private final BackupSettingsService backupSettingsService;
 
     public StudySyncController(
             StudySyncService studySyncService,
@@ -85,7 +90,8 @@ public class StudySyncController {
             BackupService backupService,
             ConfigurableApplicationContext applicationContext,
             Environment environment,
-            BookService bookService
+            BookService bookService,
+            BackupSettingsService backupSettingsService
     ) {
         this.studySyncService = studySyncService;
         this.settingsService = settingsService;
@@ -98,6 +104,7 @@ public class StudySyncController {
         this.applicationContext = applicationContext;
         this.environment = environment;
         this.bookService = bookService;
+        this.backupSettingsService = backupSettingsService;
     }
 
     @PostMapping("/current-week")
@@ -395,6 +402,30 @@ public class StudySyncController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=study-sync-backup-" + LocalDate.now() + ".json")
                 .body(backupService.createBackup());
+    }
+
+    @GetMapping("/settings/backups")
+    public BackupSettingsDto getBackupSettings() {
+        return backupSettingsService.getSettings();
+    }
+
+    @PutMapping("/settings/backups")
+    public ResponseEntity<?> saveBackupSettings(@Valid @RequestBody BackupSettingsRequest request) {
+        try {
+            return ResponseEntity.ok(backupSettingsService.saveSettings(request));
+        } catch (RuntimeException exception) {
+            return ResponseEntity.badRequest().body(new ApiErrorDto(exception.getMessage()));
+        }
+    }
+
+    @PostMapping("/backup/automatic")
+    public ResponseEntity<?> createAutomaticBackup() {
+        try {
+            return ResponseEntity.ok(backupService.createAutomaticBackup());
+        } catch (RuntimeException exception) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiErrorDto(exception.getMessage()));
+        }
     }
 
     @PostMapping("/backup/restore")
