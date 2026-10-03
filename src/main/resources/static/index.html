@@ -20,6 +20,7 @@
             <button class="nav-item" type="button" data-view="syncs"><span class="icon icon-sync" aria-hidden="true"></span><span>Sincronizacoes</span></button>
             <button class="nav-item" type="button" data-view="books"><span class="icon icon-chart" aria-hidden="true"></span><span>Livros</span></button>
             <button class="nav-item" type="button" data-view="history"><span class="icon icon-history" aria-hidden="true"></span><span>Historico</span></button>
+            <button class="nav-item" type="button" data-view="assistant"><span class="icon icon-assistant" aria-hidden="true"></span><span>Assistente</span></button>
         </nav>
         <button class="nav-item nav-settings" type="button" data-view="settings"><span class="icon icon-settings" aria-hidden="true"></span><span>Configuracoes</span></button>
         <div class="sidebar-status"><span class="status-dot"></span><span id="sidebar-connection">Verificando integracoes</span></div>
@@ -157,6 +158,22 @@
                         <p id="book-form-message" class="settings-message" aria-live="polite">Os livros ficam salvos localmente.</p>
                     </form>
                     <section class="books-list-panel" aria-labelledby="books-list-title"><div class="section-heading"><h2 id="books-list-title">Minha estante</h2><span class="section-state">Local</span></div><div id="books-list" class="books-list"><p class="empty-state">Nenhum livro cadastrado.</p></div></section>
+                </section>
+            </section>
+
+            <section class="view-panel" data-panel="assistant" hidden>
+                <section class="assistant-panel" aria-labelledby="assistant-title">
+                    <div class="view-intro"><div><p class="section-kicker">AJUDA LOCAL</p><h2 id="assistant-title">Assistente do Study Sync</h2><p class="page-subtitle">Pergunte sobre seus estudos, metas, livros e configuracoes.</p></div><button id="assistant-clear" class="button button-secondary" type="button">Limpar conversa</button></div>
+                    <p class="assistant-privacy">Suas perguntas e dados ficam neste computador. Este assistente usa regras locais e nao envia informacoes para servicos externos nem usa um modelo generativo.</p>
+                    <div id="assistant-messages" class="assistant-messages" aria-live="polite" aria-label="Conversa com o assistente"><div class="assistant-message assistant-message-bot">Oi! Posso consultar seus estudos, metas, materias, livros, backups e sincronizacoes. O que voce quer saber?</div></div>
+                    <div id="assistant-suggestions" class="assistant-suggestions" aria-label="Perguntas sugeridas">
+                        <button class="filter-button" type="button" data-assistant-question="Quanto estudei hoje?">Quanto estudei hoje?</button>
+                        <button class="filter-button" type="button" data-assistant-question="Como estao minhas metas?">Como estao minhas metas?</button>
+                        <button class="filter-button" type="button" data-assistant-question="Quais livros estou lendo?">Quais livros estou lendo?</button>
+                        <button class="filter-button" type="button" data-assistant-question="Qual materia estudei mais este mes?">Materia mais estudada</button>
+                    </div>
+                    <form id="assistant-form" class="assistant-form"><label class="sr-only" for="assistant-question">Sua pergunta</label><input id="assistant-question" type="text" maxlength="500" required placeholder="Ex.: Qual dia da semana estudei mais?"><button id="assistant-send" class="button button-primary" type="submit"><span class="icon icon-assistant" aria-hidden="true"></span>Perguntar</button></form>
+                    <p id="assistant-status" class="settings-message" aria-live="polite">As respostas usam os dados salvos no Study Sync.</p>
                 </section>
             </section>
 

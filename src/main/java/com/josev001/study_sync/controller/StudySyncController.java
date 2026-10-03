@@ -26,6 +26,8 @@ import com.josev001.study_sync.dto.StudyGoalRequest;
 import com.josev001.study_sync.dto.SubjectGoalProgressDto;
 import com.josev001.study_sync.dto.SubjectGoalRequest;
 import com.josev001.study_sync.dto.SubjectSuggestionDto;
+import com.josev001.study_sync.dto.AssistantQuestionRequest;
+import com.josev001.study_sync.dto.AssistantAnswerDto;
 import com.josev001.study_sync.dto.UserResponse;
 import com.josev001.study_sync.client.ClockifyClient;
 import com.josev001.study_sync.service.IntegrationSettingsService;
@@ -37,6 +39,7 @@ import com.josev001.study_sync.service.SubjectGoalService;
 import com.josev001.study_sync.service.BackupService;
 import com.josev001.study_sync.service.BookService;
 import com.josev001.study_sync.service.BackupSettingsService;
+import com.josev001.study_sync.service.LocalAssistantService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -78,6 +81,7 @@ public class StudySyncController {
     private final Environment environment;
     private final BookService bookService;
     private final BackupSettingsService backupSettingsService;
+    private final LocalAssistantService localAssistantService;
 
     public StudySyncController(
             StudySyncService studySyncService,
@@ -91,7 +95,8 @@ public class StudySyncController {
             ConfigurableApplicationContext applicationContext,
             Environment environment,
             BookService bookService,
-            BackupSettingsService backupSettingsService
+            BackupSettingsService backupSettingsService,
+            LocalAssistantService localAssistantService
     ) {
         this.studySyncService = studySyncService;
         this.settingsService = settingsService;
@@ -105,6 +110,12 @@ public class StudySyncController {
         this.environment = environment;
         this.bookService = bookService;
         this.backupSettingsService = backupSettingsService;
+        this.localAssistantService = localAssistantService;
+    }
+
+    @PostMapping("/assistant/ask")
+    public AssistantAnswerDto askAssistant(@Valid @RequestBody AssistantQuestionRequest request) {
+        return localAssistantService.answer(request.question());
     }
 
     @PostMapping("/current-week")

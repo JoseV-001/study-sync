@@ -18,6 +18,11 @@ const elements = {
     analyticsTopSubject: document.querySelector('#analytics-top-subject'),
     analyticsTopSubjectDetail: document.querySelector('#analytics-top-subject-detail'),
     analyticsTotal: document.querySelector('#analytics-total'),
+    assistantForm: document.querySelector('#assistant-form'),
+    assistantQuestion: document.querySelector('#assistant-question'),
+    assistantMessages: document.querySelector('#assistant-messages'),
+    assistantStatus: document.querySelector('#assistant-status'),
+    assistantClear: document.querySelector('#assistant-clear'),
     automaticSyncDay: document.querySelector('#automatic-sync-day'),
     automaticSyncEnabled: document.querySelector('#automatic-sync-enabled'),
     automaticSyncForm: document.querySelector('#automatic-sync-form'),
@@ -141,6 +146,7 @@ const viewMeta = {
     syncs: ['Sincronizacoes', 'Atualize os registros e acompanhe suas semanas.'],
     books: ['Livros', 'Acompanhe suas leituras e seu progresso por paginas.'],
     history: ['Historico', 'Consulte todas as execucoes e eventuais falhas.'],
+    assistant: ['Assistente', 'Tire duvidas sobre seus estudos e os recursos do sistema.'],
     settings: ['Configuracoes', 'Gerencie as integracoes usadas pelo Study Sync.']
 };
 
@@ -1121,8 +1127,65 @@ function applyQuickFilter(days, button) {
     loadDashboard();
 }
 
+function appendAssistantMessage(text, role) {
+    const message = document.createElement('div');
+    message.className = `assistant-message assistant-message-${role}`;
+    message.textContent = text;
+    elements.assistantMessages.appendChild(message);
+    elements.assistantMessages.scrollTop = elements.assistantMessages.scrollHeight;
+}
+
+async function askAssistant(question) {
+    const cleanQuestion = question.trim();
+    if (!cleanQuestion) return;
+    appendAssistantMessage(cleanQuestion, 'user');
+    elements.assistantQuestion.value = '';
+    elements.assistantStatus.textContent = 'Consultando seus dados locais...';
+    document.querySelectorAll('[data-assistant-question], #assistant-send').forEach((button) => { button.disabled = true; });
+    try {
+        const response = await fetch('/sync/assistant/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: cleanQuestion })
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.message || 'Nao foi possivel consultar o assistente.');
+        appendAssistantMessage(payload.answer, 'bot');
+        const suggestions = document.querySelector('#assistant-suggestions');
+        suggestions.replaceChildren();
+        (payload.suggestions || []).forEach((suggestion) => {
+            const button = document.createElement('button');
+            button.className = 'filter-button';
+            button.type = 'button';
+            button.dataset.assistantQuestion = suggestion;
+            button.textContent = suggestion;
+            suggestions.appendChild(button);
+        });
+        elements.assistantStatus.textContent = 'Resposta gerada localmente a partir dos dados do Study Sync.';
+    } catch (error) {
+        appendAssistantMessage(error.message, 'bot');
+        elements.assistantStatus.textContent = 'Nao foi possivel obter uma resposta.';
+    } finally {
+        document.querySelectorAll('[data-assistant-question], #assistant-send').forEach((button) => { button.disabled = false; });
+        elements.assistantQuestion.focus();
+    }
+}
+
 initializeAnalyticsFilters();
 document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => switchView(button.dataset.view)));
+elements.assistantForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    askAssistant(elements.assistantQuestion.value);
+});
+document.querySelector('#assistant-suggestions').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-assistant-question]');
+    if (button) askAssistant(button.dataset.assistantQuestion);
+});
+elements.assistantClear.addEventListener('click', () => {
+    elements.assistantMessages.replaceChildren();
+    appendAssistantMessage('Conversa limpa. O que voce quer saber?', 'bot');
+    elements.assistantStatus.textContent = 'As respostas usam os dados salvos no Study Sync.';
+});
 elements.refreshButton.addEventListener('click', loadDashboard);
 elements.shutdownButton.addEventListener('click', shutdownApplication);
 elements.settingsForm.addEventListener('submit', saveSettings);
