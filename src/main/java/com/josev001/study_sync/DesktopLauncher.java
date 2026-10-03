@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import org.springframework.context.ConfigurableApplicationContext;
 
 final class DesktopLauncher {
     private static FileChannel instanceLockChannel;
@@ -132,5 +133,12 @@ final class DesktopLauncher {
         } catch (IOException exception) {
             System.err.println("Abra o Study Sync em " + dashboard);
         }
+    }
+
+    static URI dashboardUri(ConfigurableApplicationContext applicationContext) {
+        int port = applicationContext.getEnvironment()
+                .getProperty("local.server.port", Integer.class,
+                        applicationContext.getEnvironment().getProperty("server.port", Integer.class, 3001));
+        return URI.create("http://localhost:" + port + "/");
     }
 }
