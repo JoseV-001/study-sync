@@ -30,6 +30,9 @@ public class Book {
     @Column(name = "current_page", nullable = false)
     private int currentPage;
 
+    @Column(name = "weekly_page_goal", nullable = false)
+    private int weeklyPageGoal;
+
     @Column(nullable = false, length = 32)
     private String status;
 
@@ -45,24 +48,26 @@ public class Book {
     protected Book() {
     }
 
-    public Book(String title, String author, int totalPages, int currentPage, String status,
+    public Book(String title, String author, int totalPages, int currentPage, int weeklyPageGoal, String status,
                 LocalDate targetDate, Instant createdAt, Instant updatedAt) {
         this.title = title;
         this.author = author;
         this.totalPages = totalPages;
         this.currentPage = currentPage;
+        this.weeklyPageGoal = weeklyPageGoal;
         this.status = status;
         this.targetDate = targetDate;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
-    public void update(String title, String author, int totalPages, int currentPage, String status,
+    public void update(String title, String author, int totalPages, int currentPage, int weeklyPageGoal, String status,
                        LocalDate targetDate, Instant updatedAt) {
         this.title = title;
         this.author = author;
         this.totalPages = totalPages;
         this.currentPage = currentPage;
+        this.weeklyPageGoal = weeklyPageGoal;
         this.status = status;
         this.targetDate = targetDate;
         this.updatedAt = updatedAt;
@@ -73,6 +78,7 @@ public class Book {
     public String getAuthor() { return author; }
     public int getTotalPages() { return totalPages; }
     public int getCurrentPage() { return currentPage; }
+    public int getWeeklyPageGoal() { return weeklyPageGoal; }
     public String getStatus() { return status; }
     public LocalDate getTargetDate() { return targetDate; }
     public Instant getCreatedAt() { return createdAt; }

@@ -1,0 +1,1 @@
+ALTER TABLE books ADD COLUMN weekly_page_goal INTEGER NOT NULL DEFAULT 0 CHECK (weekly_page_goal BETWEEN 0 AND 1000000);

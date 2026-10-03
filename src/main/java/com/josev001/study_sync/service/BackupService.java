@@ -171,14 +171,14 @@ public class BackupService {
 
     private StudyBackupDto.BookBackupDto toBookBackup(Book book) {
         return new StudyBackupDto.BookBackupDto(
-                book.getTitle(), book.getAuthor(), book.getTotalPages(), book.getCurrentPage(),
+                book.getTitle(), book.getAuthor(), book.getTotalPages(), book.getCurrentPage(), book.getWeeklyPageGoal(),
                 book.getStatus(), book.getTargetDate(), book.getCreatedAt(), book.getUpdatedAt()
         );
     }
 
     private Book toBook(StudyBackupDto.BookBackupDto book) {
         return new Book(
-                book.title(), book.author(), book.totalPages(), book.currentPage(), book.status(),
+                book.title(), book.author(), book.totalPages(), book.currentPage(), book.weeklyPageGoal(), book.status(),
                 book.targetDate(), book.createdAt(), book.updatedAt()
         );
     }

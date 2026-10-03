@@ -36,7 +36,7 @@ public class BookService {
         validate(request);
         Instant now = Instant.now(CLOCK);
         Book book = new Book(
-                request.title().trim(), clean(request.author()), request.totalPages(), request.currentPage(),
+                request.title().trim(), clean(request.author()), request.totalPages(), request.currentPage(), request.weeklyPageGoal(),
                 normalizeStatus(request.status()), request.targetDate(), now, now
         );
         return toDto(bookRepository.save(book));
@@ -48,7 +48,7 @@ public class BookService {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Livro nao encontrado."));
         book.update(
-                request.title().trim(), clean(request.author()), request.totalPages(), request.currentPage(),
+                request.title().trim(), clean(request.author()), request.totalPages(), request.currentPage(), request.weeklyPageGoal(),
                 normalizeStatus(request.status()), request.targetDate(), Instant.now(CLOCK)
         );
         return toDto(book);
@@ -83,7 +83,12 @@ public class BookService {
 
     private BookDto toDto(Book book) {
         int progress = (int) Math.round((book.getCurrentPage() * 100.0) / book.getTotalPages());
+        int remainingPages = Math.max(book.getTotalPages() - book.getCurrentPage(), 0);
+        int estimatedWeeks = book.getWeeklyPageGoal() > 0
+                ? (int) Math.ceil(remainingPages / (double) book.getWeeklyPageGoal())
+                : 0;
         return new BookDto(book.getId(), book.getTitle(), book.getAuthor(), book.getTotalPages(),
-                book.getCurrentPage(), Math.min(progress, 100), book.getStatus(), book.getTargetDate(), book.getUpdatedAt());
+                book.getCurrentPage(), book.getWeeklyPageGoal(), remainingPages, estimatedWeeks,
+                Math.min(progress, 100), book.getStatus(), book.getTargetDate(), book.getUpdatedAt());
     }
 }

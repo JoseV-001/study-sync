@@ -67,6 +67,7 @@ public record StudyBackupDto(
             String author,
             int totalPages,
             int currentPage,
+            int weeklyPageGoal,
             String status,
             LocalDate targetDate,
             Instant createdAt,

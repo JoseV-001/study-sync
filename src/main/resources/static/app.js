@@ -33,6 +33,7 @@ const elements = {
     bookFormMessage: document.querySelector('#book-form-message'),
     bookId: document.querySelector('#book-id'),
     bookStatus: document.querySelector('#book-status'),
+    bookWeeklyPageGoal: document.querySelector('#book-weekly-page-goal'),
     booksList: document.querySelector('#books-list'),
     booksState: document.querySelector('#books-state'),
     bookTargetDate: document.querySelector('#book-target-date'),
@@ -379,7 +380,11 @@ function renderBooks(books) {
         const progress = document.createElement('strong');
         progress.textContent = `${book.currentPage} de ${book.totalPages} paginas (${book.progressPercentage}%)`;
         const target = document.createElement('span');
-        target.textContent = book.targetDate ? `Meta: ${formatDate(book.targetDate)}` : 'Sem meta de conclusao';
+        const targetDate = book.targetDate ? `Terminar ate ${formatDate(book.targetDate)}` : 'Sem data final';
+        const pace = book.weeklyPageGoal > 0
+            ? `${book.estimatedWeeksToFinish} semana${book.estimatedWeeksToFinish === 1 ? '' : 's'} no ritmo da meta`
+            : 'Sem meta semanal';
+        target.textContent = `${book.remainingPages} paginas restantes. ${targetDate}. ${pace}`;
         details.append(progress, target);
         const actions = document.createElement('div');
         actions.className = 'book-card-actions';
@@ -407,6 +412,7 @@ function resetBookForm() {
     elements.bookId.value = '';
     elements.bookForm.reset();
     elements.bookCurrentPage.value = '0';
+    elements.bookWeeklyPageGoal.value = '0';
     elements.bookStatus.value = 'READING';
     elements.cancelBookEditButton.hidden = true;
     elements.bookFormMessage.textContent = 'Os livros ficam salvos localmente.';
@@ -419,6 +425,7 @@ function editBook(book) {
     elements.bookAuthor.value = book.author || '';
     elements.bookTotalPages.value = book.totalPages;
     elements.bookCurrentPage.value = book.currentPage;
+    elements.bookWeeklyPageGoal.value = book.weeklyPageGoal;
     elements.bookStatus.value = book.status;
     elements.bookTargetDate.value = book.targetDate || '';
     elements.cancelBookEditButton.hidden = false;
@@ -439,6 +446,7 @@ async function saveBook(event) {
                 author: elements.bookAuthor.value.trim(),
                 totalPages: Number(elements.bookTotalPages.value),
                 currentPage: Number(elements.bookCurrentPage.value),
+                weeklyPageGoal: Number(elements.bookWeeklyPageGoal.value || 0),
                 status: elements.bookStatus.value,
                 targetDate: elements.bookTargetDate.value || null
             })

@@ -19,6 +19,9 @@ public record BookRequest(
         int totalPages,
         @Min(value = 0, message = "A pagina atual nao pode ser negativa.")
         int currentPage,
+        @Min(value = 0, message = "A meta de paginas nao pode ser negativa.")
+        @Max(value = 1000000, message = "A meta de paginas e muito alta.")
+        int weeklyPageGoal,
         @NotBlank(message = "Informe o status do livro.")
         String status,
         LocalDate targetDate
