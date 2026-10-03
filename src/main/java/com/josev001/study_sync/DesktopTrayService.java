@@ -65,6 +65,12 @@ public class DesktopTrayService {
             trayIcon.setImageAutoSize(true);
             trayIcon.addActionListener(event -> DesktopLauncher.openBrowser(DesktopLauncher.dashboardUri(applicationContext)));
             SystemTray.getSystemTray().add(trayIcon);
+            if (DesktopLauncher.didSelectFallbackPort()) {
+                trayIcon.displayMessage("Study Sync iniciou em outra porta",
+                        "A porta " + DesktopLauncher.getRequestedPort() + " estava ocupada. A dashboard abriu na porta "
+                                + DesktopLauncher.getSelectedPort() + ".",
+                        TrayIcon.MessageType.INFO);
+            }
         } catch (IOException | AWTException | RuntimeException exception) {
             System.err.println("Nao foi possivel instalar o icone da bandeja: " + exception.getMessage());
         }

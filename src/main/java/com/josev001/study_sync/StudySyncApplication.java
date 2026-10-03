@@ -21,8 +21,9 @@ public class StudySyncApplication {
     private boolean openBrowser;
 
     public static void main(String[] args) {
-        if (DesktopLauncher.reuseRunningApplication(args)) return;
-        SpringApplication.run(StudySyncApplication.class, args);
+        String[] preparedArgs = DesktopLauncher.prepareDesktopArgs(args);
+        if (preparedArgs == null || DesktopLauncher.reuseRunningApplication(preparedArgs)) return;
+        SpringApplication.run(StudySyncApplication.class, preparedArgs);
     }
 
     @EventListener(ApplicationReadyEvent.class)

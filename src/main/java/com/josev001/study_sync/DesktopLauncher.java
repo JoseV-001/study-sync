@@ -7,6 +7,8 @@ import java.awt.Desktop;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
@@ -18,8 +20,54 @@ import org.springframework.context.ConfigurableApplicationContext;
 final class DesktopLauncher {
     private static FileChannel instanceLockChannel;
     private static FileLock instanceLock;
+    private static int requestedPort = 3001;
+    private static int selectedPort = 3001;
 
     private DesktopLauncher() {}
+
+    static String[] prepareDesktopArgs(String[] args) {
+        StandardEnvironment environment = new StandardEnvironment();
+        environment.getPropertySources().addFirst(new SimpleCommandLinePropertySource(args));
+        if (!environment.getProperty("study-sync.desktop", Boolean.class, false)) return args;
+
+        requestedPort = environment.getProperty("server.port", Integer.class, 3001);
+        selectedPort = requestedPort;
+        if (requestedPort == 0 || isPortAvailable(requestedPort)
+                || isStudySyncRunning(URI.create("http://localhost:" + requestedPort + "/"))) return args;
+
+        for (int port = Math.max(1, requestedPort + 1); port <= Math.min(65535, requestedPort + 30); port++) {
+            if (isPortAvailable(port)) {
+                selectedPort = port;
+                java.util.List<String> updated = new java.util.ArrayList<>();
+                for (int i = 0; i < args.length; i++) {
+                    if (args[i].startsWith("--server.port=")) continue;
+                    if (args[i].equals("--server.port")) { i++; continue; }
+                    updated.add(args[i]);
+                }
+                updated.add("--server.port=" + port);
+                return updated.toArray(String[]::new);
+            }
+        }
+
+        javax.swing.JOptionPane.showMessageDialog(null,
+                "As portas a partir de " + requestedPort + " estao ocupadas. Feche outro aplicativo e tente novamente.",
+                "Nao foi possivel iniciar o Study Sync", javax.swing.JOptionPane.ERROR_MESSAGE);
+        return null;
+    }
+
+    static boolean didSelectFallbackPort() { return selectedPort != requestedPort; }
+    static int getRequestedPort() { return requestedPort; }
+    static int getSelectedPort() { return selectedPort; }
+
+    private static boolean isPortAvailable(int port) {
+        try (ServerSocket socket = new ServerSocket()) {
+            socket.setReuseAddress(false);
+            socket.bind(new InetSocketAddress(port));
+            return true;
+        } catch (IOException exception) {
+            return false;
+        }
+    }
 
     static boolean reuseRunningApplication(String[] args) {
         StandardEnvironment environment = new StandardEnvironment();

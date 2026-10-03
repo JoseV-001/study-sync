@@ -1,10 +1,10 @@
 $ErrorActionPreference = 'Stop'
 
 $projectPath = $PSScriptRoot
-$appVersion = '1.0.1'
+$appVersion = '1.0.2'
 $jarName = "study-sync-$appVersion.jar"
 $jarPath = Join-Path $projectPath "target\$jarName"
-$outputPath = Join-Path $projectPath 'release'
+$outputPath = Join-Path $projectPath "release\$appVersion"
 $java21Path = 'C:\Program Files\Java\jdk-21\bin'
 $jpackagePath = Join-Path $java21Path 'jpackage.exe'
 
@@ -46,7 +46,7 @@ Copy-Item -LiteralPath $jarPath -Destination (Join-Path $inputPath $jarName) -Fo
 $appImagePath = Join-Path $outputPath 'StudySync'
 if (Test-Path -LiteralPath $appImagePath) {
     $resolvedImage = (Resolve-Path -LiteralPath $appImagePath).Path
-    if ($resolvedImage -ne [System.IO.Path]::GetFullPath((Join-Path $projectPath 'release\StudySync'))) {
+    if ($resolvedImage -ne [System.IO.Path]::GetFullPath((Join-Path $outputPath 'StudySync'))) {
         throw 'Caminho de pacote inesperado.'
     }
     Remove-Item -LiteralPath $appImagePath -Recurse -Force
@@ -79,8 +79,23 @@ if (-not (Test-Path -LiteralPath $executablePath)) {
 Copy-Item -LiteralPath (Join-Path $projectPath 'stop-study-sync.bat') -Destination $appImagePath -Force
 Copy-Item -LiteralPath (Join-Path $projectPath 'stop-study-sync.ps1') -Destination $appImagePath -Force
 
+$manifestPath = Join-Path $appImagePath 'SHA256SUMS.txt'
+$manifest = Get-ChildItem -LiteralPath $appImagePath -File -Recurse |
+    Where-Object { $_.FullName -ne $manifestPath } |
+    Sort-Object FullName |
+    ForEach-Object {
+        $relative = [System.IO.Path]::GetRelativePath($appImagePath, $_.FullName).Replace('\', '/')
+        "$(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256 | Select-Object -ExpandProperty Hash)  $relative"
+    }
+Set-Content -LiteralPath $manifestPath -Value $manifest -Encoding ASCII
+Copy-Item -LiteralPath (Join-Path $projectPath 'install-study-sync.ps1') -Destination $outputPath -Force
+Copy-Item -LiteralPath (Join-Path $projectPath 'install-study-sync.bat') -Destination $outputPath -Force
+Copy-Item -LiteralPath (Join-Path $projectPath 'uninstall-study-sync.ps1') -Destination $outputPath -Force
+Copy-Item -LiteralPath (Join-Path $projectPath 'uninstall-study-sync.bat') -Destination $outputPath -Force
+
 $archivePath = Join-Path $outputPath "StudySync-$appVersion-windows-x64.zip"
-Compress-Archive -LiteralPath $appImagePath -DestinationPath $archivePath -CompressionLevel Optimal -Force
+if (Test-Path -LiteralPath $archivePath) { Remove-Item -LiteralPath $archivePath -Force }
+Compress-Archive -LiteralPath $appImagePath, (Join-Path $outputPath 'install-study-sync.ps1'), (Join-Path $outputPath 'install-study-sync.bat'), (Join-Path $outputPath 'uninstall-study-sync.ps1'), (Join-Path $outputPath 'uninstall-study-sync.bat') -DestinationPath $archivePath -CompressionLevel Optimal
 
 Write-Host "`nExecutavel criado em: $executablePath" -ForegroundColor Green
 Write-Host "Pacote para distribuicao criado em: $archivePath" -ForegroundColor Green

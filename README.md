@@ -30,13 +30,13 @@ O Study Sync funciona com SQLite e guarda os dados no próprio computador. Para 
 
 O pacote pronto já inclui o Java e usa SQLite. PostgreSQL não é necessário.
 
-> O executável gerado não fica versionado neste repositório. Para usar sem compilar, baixe o pacote portátil na página de [Releases](https://github.com/JoseV-001/study-sync/releases). Para gerar seu próprio pacote, consulte [Gerando o executável](#gerando-o-executável).
+> O executável gerado não fica versionado neste repositório. Para usar sem compilar, baixe o pacote Windows na página de [Releases](https://github.com/JoseV-001/study-sync/releases). Para gerar seu próprio pacote, consulte [Gerando o executável](#gerando-o-executável).
 
 ### Primeira configuração
 
-1. Extraia a pasta do pacote em um local definitivo.
-2. Abra `StudySync.exe`.
-3. Aguarde a dashboard abrir em `http://localhost:3001/`.
+1. Extraia o ZIP completo.
+2. Execute `install-study-sync.bat`.
+3. O instalador verifica os arquivos e cria atalhos no menu Iniciar. O aplicativo será aberto ao final.
 4. No assistente inicial, cole sua chave de API do Clockify.
 5. Depois que a conexão for validada, abra **Sincronizações** e use **Importar tudo**.
 6. Acesse **Visão geral** e **Análises** para conferir seu histórico.
@@ -44,7 +44,9 @@ O pacote pronto já inclui o Java e usa SQLite. PostgreSQL não é necessário.
 
 A primeira importação pode demorar mais, dependendo da quantidade de registros no Clockify. As próximas importações atualizam registros pelo ID e não criam duplicações.
 
-Se o Study Sync já estiver em execução, abrir o executável novamente apenas abre a dashboard existente no navegador.
+Para atualizar, extraia a nova versão e execute `install-study-sync.bat` novamente. O banco e as configurações ficam em `~/.study-sync` e são preservados. Para remover o aplicativo, use **Desinstalar Study Sync** no menu Iniciar; os dados locais também são mantidos.
+
+Se o Study Sync já estiver em execução, abrir o atalho novamente apenas abre a dashboard existente no navegador. Se a porta 3001 estiver ocupada, o aplicativo escolhe automaticamente uma porta livre próxima e informa a mudança pela notificação do Windows.
 
 ## Como usar
 
@@ -179,13 +181,7 @@ Não mova apenas `StudySync.exe`. O executável depende das pastas `app` e `runt
 
 ### A porta 3001 já está em uso
 
-Encerre a aplicação que estiver usando a porta ou inicie o Study Sync com outra porta:
-
-```powershell
-.\StudySync.exe --server.port=3002
-```
-
-Depois, acesse `http://localhost:3002/`.
+O executável instalado procura automaticamente uma porta livre entre a configurada e as 30 seguintes. A dashboard abre no endereço correto e uma notificação informa qual porta foi escolhida. Se todas estiverem ocupadas, feche algum aplicativo e tente novamente.
 
 ### Estudos antigos não aparecem
 
@@ -241,8 +237,8 @@ Com JDK 21, `jpackage` e Maven disponíveis, execute:
 O pacote será criado em:
 
 ```text
-release\StudySync\StudySync.exe
-release\StudySync-1.0.1-windows-x64.zip
+release\1.0.2\StudySync\StudySync.exe
+release\1.0.2\StudySync-1.0.2-windows-x64.zip
 ```
 
 Distribua o arquivo ZIP gerado. Ele contém a pasta `StudySync` completa, incluindo o executável e o runtime Java.

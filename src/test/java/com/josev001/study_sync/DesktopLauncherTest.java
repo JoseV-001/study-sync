@@ -5,11 +5,27 @@ import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DesktopLauncherTest {
+    @Test
+    void choosesNextAvailablePortWhenConfiguredPortIsOccupied() throws Exception {
+        try (ServerSocket occupied = new ServerSocket(0);
+             ServerSocket nextOccupied = new ServerSocket(occupied.getLocalPort() + 1)) {
+            int requestedPort = occupied.getLocalPort();
+            String[] prepared = DesktopLauncher.prepareDesktopArgs(new String[]{
+                    "--study-sync.desktop=true", "--server.port=" + requestedPort
+            });
+
+            assertThat(prepared).contains("--server.port=" + (requestedPort + 2));
+            assertThat(DesktopLauncher.didSelectFallbackPort()).isTrue();
+            assertThat(DesktopLauncher.getSelectedPort()).isEqualTo(requestedPort + 2);
+        }
+    }
+
     @Test
     void reusesExistingDashboardButDoesNotSkipScheduledSync() throws Exception {
         HttpServer server = server("<title>Study Sync</title><img src='/assets/jose-victor-logo.png'>");
