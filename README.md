@@ -9,6 +9,8 @@ O Study Sync funciona com SQLite e guarda os dados no próprio computador. Para 
 - importação de todo o histórico ou de um período específico do Clockify;
 - dashboard com filtros de 7, 30 e 90 dias, além de intervalo personalizado;
 - análises por dia, semana, mês, horário, dia da semana e matéria;
+- relatórios semanais e mensais com comparação de períodos e exportação em CSV ou PDF;
+- resumo dos resultados pronto para copiar e compartilhar;
 - identificação de matérias por tarefa, tag, descrição ou projeto do Clockify;
 - metas diárias, semanais e por matéria ou tópico;
 - histórico das sincronizações e mensagens de erro;
@@ -63,6 +65,12 @@ Permite escolher períodos prontos ou datas personalizadas. A dashboard apresent
 - distribuição por horário, dia da semana e matéria.
 
 Use **Importar período** quando o intervalo escolhido ainda não estiver salvo no banco local.
+
+### Relatorios
+
+Na aba **Relatorios**, escolha uma data de referencia e visualize o resumo semanal ou mensal, comparado ao periodo anterior equivalente. Na semana ou no mes em andamento, a comparacao usa a mesma quantidade de dias transcorridos nos dois periodos.
+
+Voce pode baixar os indicadores e as materias em CSV, salvar o relatorio como PDF pela impressao do navegador ou copiar um resumo pronto para compartilhar. Os arquivos sao gerados localmente a partir dos dados do Study Sync.
 
 ### Sincronizações
 
@@ -286,6 +294,8 @@ POST /sync/import?from=2026-08-17&to=2026-09-15
 POST /sync/import/all
 
 GET  /sync/analytics?from=2026-08-17&to=2026-09-15
+GET  /sync/reports?period=weekly&date=2026-09-15
+GET  /sync/reports.csv?period=monthly&date=2026-09-15
 GET  /sync/weeks
 GET  /sync/history
 GET  /sync/goals

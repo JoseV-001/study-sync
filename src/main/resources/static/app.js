@@ -23,6 +23,26 @@ const elements = {
     assistantMessages: document.querySelector('#assistant-messages'),
     assistantStatus: document.querySelector('#assistant-status'),
     assistantClear: document.querySelector('#assistant-clear'),
+    reportPeriod: document.querySelector('#report-period'),
+    reportDate: document.querySelector('#report-date'),
+    reportApplyButton: document.querySelector('#report-apply-button'),
+    reportCsvButton: document.querySelector('#report-csv-button'),
+    reportPdfButton: document.querySelector('#report-pdf-button'),
+    reportCopyButton: document.querySelector('#report-copy-button'),
+    reportStatus: document.querySelector('#report-status'),
+    reportContent: document.querySelector('#report-content'),
+    reportPeriodLabel: document.querySelector('#report-period-label'),
+    reportComparisonLabel: document.querySelector('#report-comparison-label'),
+    reportTotal: document.querySelector('#report-total'),
+    reportDateRange: document.querySelector('#report-date-range'),
+    reportPreviousTotal: document.querySelector('#report-previous-total'),
+    reportPreviousRange: document.querySelector('#report-previous-range'),
+    reportChange: document.querySelector('#report-change'),
+    reportActiveDays: document.querySelector('#report-active-days'),
+    reportChartTotal: document.querySelector('#report-chart-total'),
+    reportDailyChart: document.querySelector('#report-daily-chart'),
+    reportSubjectChart: document.querySelector('#report-subject-chart'),
+    reportShareSummary: document.querySelector('#report-share-summary'),
     automaticSyncDay: document.querySelector('#automatic-sync-day'),
     automaticSyncEnabled: document.querySelector('#automatic-sync-enabled'),
     automaticSyncForm: document.querySelector('#automatic-sync-form'),
@@ -147,6 +167,7 @@ const viewMeta = {
     books: ['Livros', 'Acompanhe suas leituras e seu progresso por paginas.'],
     history: ['Historico', 'Consulte todas as execucoes e eventuais falhas.'],
     assistant: ['Assistente', 'Tire duvidas sobre seus estudos e os recursos do sistema.'],
+    reports: ['Relatorios', 'Compare periodos e acompanhe sua evolucao.'],
     settings: ['Configuracoes', 'Gerencie as integracoes usadas pelo Study Sync.']
 };
 
@@ -603,6 +624,71 @@ function switchView(view) {
     elements.analyticsMessage.classList.toggle('is-hidden', !showAnalyticsFilters);
     window.history.replaceState(null, '', `#${selectedView}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (selectedView === 'reports') loadStudyReport();
+}
+
+function updateReportDateInput() {
+    const monthly = elements.reportPeriod.value === 'monthly';
+    const today = new Date();
+    const currentValue = elements.reportDate.value;
+    elements.reportDate.type = monthly ? 'month' : 'date';
+    if (monthly) {
+        elements.reportDate.value = currentValue.length >= 7 ? currentValue.slice(0, 7) : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    } else {
+        elements.reportDate.value = currentValue.length === 10 ? currentValue : dateToInput(today);
+    }
+}
+
+function reportRequestDate() {
+    const value = elements.reportDate.value;
+    return elements.reportPeriod.value === 'monthly' ? `${value}-01` : value;
+}
+
+function renderStudyReport(report) {
+    elements.reportContent.hidden = false;
+    elements.reportPeriodLabel.textContent = report.periodLabel;
+    elements.reportComparisonLabel.textContent = report.percentageChange == null
+        ? 'Sem periodo anterior com registros'
+        : `${report.percentageChange > 0 ? '+' : ''}${report.percentageChange}% em relacao ao periodo anterior`;
+    elements.reportTotal.textContent = formatMinutes(report.current.totalMinutes);
+    elements.reportDateRange.textContent = `${formatDate(report.from)} a ${formatDate(report.to)}`;
+    elements.reportPreviousTotal.textContent = formatMinutes(report.previous.totalMinutes);
+    elements.reportPreviousRange.textContent = `${formatDate(report.previousFrom)} a ${formatDate(report.previousTo)}`;
+    elements.reportChange.textContent = report.differenceMinutes === 0
+        ? 'Sem variacao'
+        : `${report.differenceMinutes > 0 ? '+' : '-'}${formatMinutes(Math.abs(report.differenceMinutes))}`;
+    elements.reportChange.classList.toggle('success-text', report.differenceMinutes > 0);
+    elements.reportChange.classList.toggle('error-text', report.differenceMinutes < 0);
+    elements.reportActiveDays.textContent = report.current.activeDays;
+    elements.reportChartTotal.textContent = formatMinutes(report.current.totalMinutes);
+    renderBarChart(elements.reportDailyChart, report.current.daily, { labelFormatter: (label) => formatChartLabel(label, 'daily') });
+    renderBarChart(elements.reportSubjectChart, report.current.subjects, { horizontal: true, limit: 8 });
+    elements.reportShareSummary.textContent = report.shareSummary;
+    elements.reportStatus.textContent = 'Relatorio atualizado.';
+}
+
+async function loadStudyReport() {
+    if (!elements.reportDate.value) updateReportDateInput();
+    const params = new URLSearchParams({ period: elements.reportPeriod.value, date: reportRequestDate() });
+    elements.reportStatus.textContent = 'Gerando relatorio...';
+    elements.reportApplyButton.disabled = true;
+    try {
+        const report = await fetchJson(`/sync/reports?${params}`);
+        renderStudyReport(report);
+    } catch (error) {
+        elements.reportStatus.textContent = error.message;
+    } finally {
+        elements.reportApplyButton.disabled = false;
+    }
+}
+
+async function copyReportSummary() {
+    try {
+        await navigator.clipboard.writeText(elements.reportShareSummary.textContent);
+        elements.reportStatus.textContent = 'Resumo copiado.';
+    } catch {
+        elements.reportStatus.textContent = 'Nao foi possivel copiar o resumo neste navegador.';
+    }
 }
 
 function renderBarChart(container, points, options = {}) {
@@ -1173,6 +1259,14 @@ async function askAssistant(question) {
 
 initializeAnalyticsFilters();
 document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => switchView(button.dataset.view)));
+elements.reportPeriod.addEventListener('change', updateReportDateInput);
+elements.reportApplyButton.addEventListener('click', loadStudyReport);
+elements.reportCsvButton.addEventListener('click', () => {
+    const params = new URLSearchParams({ period: elements.reportPeriod.value, date: reportRequestDate() });
+    downloadFile(`/sync/reports.csv?${params}`);
+});
+elements.reportPdfButton.addEventListener('click', () => window.print());
+elements.reportCopyButton.addEventListener('click', copyReportSummary);
 elements.assistantForm.addEventListener('submit', (event) => {
     event.preventDefault();
     askAssistant(elements.assistantQuestion.value);

@@ -28,6 +28,7 @@ import com.josev001.study_sync.dto.SubjectGoalRequest;
 import com.josev001.study_sync.dto.SubjectSuggestionDto;
 import com.josev001.study_sync.dto.AssistantQuestionRequest;
 import com.josev001.study_sync.dto.AssistantAnswerDto;
+import com.josev001.study_sync.dto.StudyReportDto;
 import com.josev001.study_sync.dto.UserResponse;
 import com.josev001.study_sync.client.ClockifyClient;
 import com.josev001.study_sync.service.IntegrationSettingsService;
@@ -40,6 +41,7 @@ import com.josev001.study_sync.service.BackupService;
 import com.josev001.study_sync.service.BookService;
 import com.josev001.study_sync.service.BackupSettingsService;
 import com.josev001.study_sync.service.LocalAssistantService;
+import com.josev001.study_sync.service.StudyReportService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -82,6 +84,7 @@ public class StudySyncController {
     private final BookService bookService;
     private final BackupSettingsService backupSettingsService;
     private final LocalAssistantService localAssistantService;
+    private final StudyReportService studyReportService;
 
     public StudySyncController(
             StudySyncService studySyncService,
@@ -96,7 +99,8 @@ public class StudySyncController {
             Environment environment,
             BookService bookService,
             BackupSettingsService backupSettingsService,
-            LocalAssistantService localAssistantService
+            LocalAssistantService localAssistantService,
+            StudyReportService studyReportService
     ) {
         this.studySyncService = studySyncService;
         this.settingsService = settingsService;
@@ -111,11 +115,32 @@ public class StudySyncController {
         this.bookService = bookService;
         this.backupSettingsService = backupSettingsService;
         this.localAssistantService = localAssistantService;
+        this.studyReportService = studyReportService;
     }
 
     @PostMapping("/assistant/ask")
     public AssistantAnswerDto askAssistant(@Valid @RequestBody AssistantQuestionRequest request) {
         return localAssistantService.answer(request.question());
+    }
+
+    @GetMapping("/reports")
+    public StudyReportDto getReport(
+            @RequestParam(defaultValue = "weekly") String period,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        return studyReportService.getReport(period, date);
+    }
+
+    @GetMapping(value = "/reports.csv", produces = "text/csv")
+    public ResponseEntity<String> downloadReportCsv(
+            @RequestParam(defaultValue = "weekly") String period,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        StudyReportDto report = studyReportService.getReport(period, date);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=study-sync-relatorio-" + period + "-" + report.from() + ".csv")
+                .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
+                .body(studyReportService.toCsv(report));
     }
 
     @PostMapping("/current-week")

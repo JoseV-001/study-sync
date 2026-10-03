@@ -21,6 +21,7 @@
             <button class="nav-item" type="button" data-view="books"><span class="icon icon-chart" aria-hidden="true"></span><span>Livros</span></button>
             <button class="nav-item" type="button" data-view="history"><span class="icon icon-history" aria-hidden="true"></span><span>Historico</span></button>
             <button class="nav-item" type="button" data-view="assistant"><span class="icon icon-assistant" aria-hidden="true"></span><span>Assistente</span></button>
+            <button class="nav-item" type="button" data-view="reports"><span class="icon icon-reports" aria-hidden="true"></span><span>Relatorios</span></button>
         </nav>
         <button class="nav-item nav-settings" type="button" data-view="settings"><span class="icon icon-settings" aria-hidden="true"></span><span>Configuracoes</span></button>
         <div class="sidebar-status"><span class="status-dot"></span><span id="sidebar-connection">Verificando integracoes</span></div>
@@ -174,6 +175,34 @@
                     </div>
                     <form id="assistant-form" class="assistant-form"><label class="sr-only" for="assistant-question">Sua pergunta</label><input id="assistant-question" type="text" maxlength="500" required placeholder="Ex.: Qual dia da semana estudei mais?"><button id="assistant-send" class="button button-primary" type="submit"><span class="icon icon-assistant" aria-hidden="true"></span>Perguntar</button></form>
                     <p id="assistant-status" class="settings-message" aria-live="polite">As respostas usam os dados salvos no Study Sync.</p>
+                </section>
+            </section>
+
+            <section class="view-panel" data-panel="reports" hidden>
+                <section class="content-section content-section-first reports-page" aria-labelledby="reports-title">
+                    <div class="view-intro"><div><p class="section-kicker">RESUMO DO SEU RITMO</p><h2 id="reports-title">Relatorios de estudo</h2><p class="page-subtitle">Compare periodos e compartilhe sua evolucao.</p></div>
+                        <div class="report-actions"><button id="report-csv-button" class="button button-secondary" type="button"><span class="icon icon-download" aria-hidden="true"></span>Baixar CSV</button><button id="report-pdf-button" class="button button-secondary" type="button"><span class="icon icon-reports" aria-hidden="true"></span>Salvar PDF</button><button id="report-copy-button" class="button button-primary" type="button">Copiar resumo</button></div>
+                    </div>
+                    <div class="report-filters">
+                        <label class="field-control"><span>Periodo</span><select id="report-period"><option value="weekly">Semanal</option><option value="monthly">Mensal</option></select></label>
+                        <label class="field-control"><span>Data de referencia</span><input id="report-date" type="date"></label>
+                        <button id="report-apply-button" class="button button-primary" type="button">Gerar relatorio</button>
+                        <span id="report-status" class="section-state" aria-live="polite">Selecione o periodo.</span>
+                    </div>
+                    <div id="report-content" hidden>
+                        <div class="section-heading report-heading"><div><p class="section-kicker">PERIODO ANALISADO</p><h3 id="report-period-label">--</h3></div><span id="report-comparison-label" class="section-state">--</span></div>
+                        <div class="stats-grid report-stats">
+                            <article class="stat-card stat-card-accent"><span class="stat-label">Horas estudadas</span><strong id="report-total" class="stat-value">--</strong><span id="report-date-range" class="stat-detail">--</span></article>
+                            <article class="stat-card"><span class="stat-label">Periodo anterior</span><strong id="report-previous-total" class="stat-value">--</strong><span id="report-previous-range" class="stat-detail">--</span></article>
+                            <article class="stat-card"><span class="stat-label">Variacao</span><strong id="report-change" class="stat-value">--</strong><span class="stat-detail">Comparado ao periodo anterior</span></article>
+                            <article class="stat-card"><span class="stat-label">Dias ativos</span><strong id="report-active-days" class="stat-value">--</strong><span class="stat-detail">Dias com pelo menos um registro</span></article>
+                        </div>
+                        <div class="report-charts">
+                            <section class="chart-panel"><div class="chart-heading"><h3>Horas por dia</h3><span id="report-chart-total" class="section-state">--</span></div><div id="report-daily-chart" class="bar-chart trend-chart"></div></section>
+                            <section class="chart-panel"><div class="chart-heading"><h3>Materias mais estudadas</h3><span class="section-state">No periodo selecionado</span></div><div id="report-subject-chart" class="subject-chart"></div></section>
+                        </div>
+                        <section class="report-summary" aria-labelledby="report-summary-title"><div class="section-heading"><div><p class="section-kicker">PRONTO PARA COMPARTILHAR</p><h3 id="report-summary-title">Resumo</h3></div></div><p id="report-share-summary"></p></section>
+                    </div>
                 </section>
             </section>
 
