@@ -2,6 +2,7 @@ package com.josev001.study_sync.service;
 
 import com.josev001.study_sync.dto.ClockifyEntryMetadataDto;
 import com.josev001.study_sync.dto.StudyEntryStoreResult;
+import com.josev001.study_sync.dto.StudyImportDto;
 import com.josev001.study_sync.dto.SubjectSuggestionDto;
 import com.josev001.study_sync.dto.SubjectClassification;
 import com.josev001.study_sync.dto.TimeEntryDto;
@@ -43,7 +44,6 @@ public class StudyEntryService {
 
     @Transactional
     public StudyEntryStoreResult storeEntriesDetailed(List<TimeEntryDto> entries) {
-        clockifyMetadataService.clearCache();
         Instant syncedAt = Instant.now();
         int createdEntries = 0;
         int updatedEntries = 0;
@@ -59,19 +59,31 @@ public class StudyEntryService {
             Instant endedAt = Instant.parse(entry.timeInterval().end());
             long durationMinutes = Duration.parse(entry.timeInterval().duration()).toMinutes();
             LocalDate recordedDate = startedAt.atZone(APP_ZONE).toLocalDate();
+            Optional<StudyEntry> existingEntry = studyEntryRepository.findById(entry.id());
+
             ClockifyEntryMetadataDto metadata = clockifyMetadataService.resolve(entry);
+            String projectName = metadata.projectName();
+            String topicName = metadata.topicName();
             String tagIds = join(entry.tagIds());
             String tagNames = join(metadata.tagNames());
-            SubjectClassification classification = classify(entry, metadata);
 
-            Optional<StudyEntry> existingEntry = studyEntryRepository.findById(entry.id());
             if (existingEntry.isPresent()) {
                 StudyEntry storedEntry = existingEntry.get();
+                if (projectName == null || projectName.isBlank()) {
+                    projectName = storedEntry.getProjectName();
+                }
+                if (topicName == null || topicName.isBlank()) {
+                    topicName = storedEntry.getTopicName();
+                }
+                if (tagNames == null || tagNames.isBlank()) {
+                    tagNames = storedEntry.getTagNames();
+                }
+                SubjectClassification classification = classify(topicName, tagNames, projectName, entry.description());
                 storedEntry.update(
                                     entry.projectId(),
                                     entry.taskId(),
-                                    metadata.projectName(),
-                                    metadata.topicName(),
+                                    projectName,
+                                    topicName,
                                     tagIds,
                                     tagNames,
                                     entry.description(),
@@ -85,12 +97,13 @@ public class StudyEntryService {
                 );
                 updatedEntries++;
             } else {
+                SubjectClassification classification = classify(entry, metadata);
                 studyEntryRepository.save(new StudyEntry(
                                     entry.id(),
                                     entry.projectId(),
                                     entry.taskId(),
-                                    metadata.projectName(),
-                                    metadata.topicName(),
+                                    projectName,
+                                    topicName,
                                     tagIds,
                                     tagNames,
                                     entry.description(),
@@ -107,6 +120,27 @@ public class StudyEntryService {
         }
 
         return new StudyEntryStoreResult(createdEntries, updatedEntries, skippedEntries);
+    }
+
+    @Transactional
+    public StudyImportDto reprocessStoredEntriesBetween(LocalDate from, LocalDate to) {
+        Instant now = Instant.now();
+        List<StudyEntry> entries = getEntriesBetween(from, to);
+        long totalMinutes = 0L;
+        for (StudyEntry entry : entries) {
+            SubjectClassification classification = classify(
+                    entry.getTopicName(),
+                    entry.getTagNames(),
+                    entry.getProjectName(),
+                    entry.getDescription()
+            );
+            if (!classification.name().equals(entry.getSubject())
+                    || !classification.source().equals(entry.getSubjectSource())) {
+                entry.updateClassification(classification.name(), classification.source(), now);
+            }
+            totalMinutes += entry.getDurationMinutes();
+        }
+        return new StudyImportDto(from, to, 0, entries.size(), 0, totalMinutes);
     }
 
     public List<StudyEntry> getEntriesBetween(LocalDate from, LocalDate to) {

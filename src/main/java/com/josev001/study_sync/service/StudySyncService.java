@@ -179,19 +179,35 @@ public class StudySyncService {
 
     @Transactional
     public StudyImportDto importStudyEntries(LocalDate from, LocalDate to) {
-        List<TimeEntryDto> entries = clockifyService.getStudyEntries(from, to);
-        return storeImportedEntries(entries, from, to);
+        try {
+            List<TimeEntryDto> entries = clockifyService.getStudyEntries(from, to);
+            return storeImportedEntries(entries, from, to);
+        } catch (IllegalStateException exception) {
+            if (exception.getMessage() != null && exception.getMessage().contains("limitou as requisicoes")) {
+                logger.warn("Clockify rate-limited during import ({} to {}); reprocessing local stored entries.", from, to);
+                return studyEntryService.reprocessStoredEntriesBetween(from, to);
+            }
+            throw exception;
+        }
     }
 
     @Transactional
     public StudyImportDto importAllStudyEntries() {
-        List<TimeEntryDto> entries = clockifyService.getAllStudyEntries();
         LocalDate today = LocalDate.now(APP_ZONE);
-        LocalDate from = entries.stream()
-                .map(entry -> Instant.parse(entry.timeInterval().start()).atZone(APP_ZONE).toLocalDate())
-                .min(LocalDate::compareTo)
-                .orElse(today);
-        return storeImportedEntries(entries, from, today);
+        try {
+            List<TimeEntryDto> entries = clockifyService.getAllStudyEntries();
+            LocalDate from = entries.stream()
+                    .map(entry -> Instant.parse(entry.timeInterval().start()).atZone(APP_ZONE).toLocalDate())
+                    .min(LocalDate::compareTo)
+                    .orElse(today);
+            return storeImportedEntries(entries, from, today);
+        } catch (IllegalStateException exception) {
+            if (exception.getMessage() != null && exception.getMessage().contains("limitou as requisicoes")) {
+                logger.warn("Clockify rate-limited during importAll; reprocessing all local stored entries.");
+                return studyEntryService.reprocessStoredEntriesBetween(LocalDate.of(2020, 1, 1), today);
+            }
+            throw exception;
+        }
     }
 
     private StudyImportDto storeImportedEntries(List<TimeEntryDto> entries, LocalDate from, LocalDate to) {
