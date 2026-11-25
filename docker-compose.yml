@@ -5,18 +5,26 @@ services:
       dockerfile: Dockerfile
     container_name: study-sync
     restart: unless-stopped
-    network_mode: host
+    ports:
+      - "3001:3001"
     environment:
       STUDY_SYNC_PORT: "3001"
       STUDY_SYNC_DATA_DIR: "/data"
       JAVA_OPTS: "-Xms128m -Xmx512m"
       SPRING_PROFILES_ACTIVE: "postgresql"
-      SPRING_DATASOURCE_URL: "jdbc:postgresql://127.0.0.1:5432/studysync"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://invest-postgres:5432/studysync"
       SPRING_DATASOURCE_USERNAME: "${POSTGRES_USER}"
       SPRING_DATASOURCE_PASSWORD: "${POSTGRES_PASSWORD}"
-      DATABASE_URL: "jdbc:postgresql://127.0.0.1:5432/studysync"
+      DATABASE_URL: "jdbc:postgresql://invest-postgres:5432/studysync"
       DATABASE_USERNAME: "${POSTGRES_USER}"
       DATABASE_PASSWORD: "${POSTGRES_PASSWORD}"
     volumes:
       - ./data:/data
+    networks:
+      - invest-net
     mem_limit: 768m
+
+networks:
+  invest-net:
+    external: true
+    name: invest-portfolio_invest-net

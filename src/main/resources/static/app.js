@@ -247,7 +247,8 @@ function renderSettings(settings, openSetup = false) {
 
 function renderDiagnostics(diagnostics) {
     elements.diagnosticVersion.textContent = diagnostics.version;
-    elements.diagnosticPort.textContent = `localhost:${diagnostics.port}`;
+    const currentHost = (typeof window !== 'undefined' && window.location && window.location.hostname) ? window.location.hostname : 'localhost';
+    elements.diagnosticPort.textContent = `${currentHost}:${diagnostics.port}`;
     elements.diagnosticMode.textContent = diagnostics.mode;
     elements.diagnosticClockify.textContent = diagnostics.clockifyConfigured ? 'Configurado' : 'Pendente';
     elements.diagnosticNotion.textContent = diagnostics.notionConfigured ? 'Configurado' : 'Nao configurado';
