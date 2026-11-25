@@ -44,8 +44,8 @@ application-local.properties
 *.db-shm
 *.db-wal
 *.bak
-data/
-config/
+/data/
+/config/
 .env
 .env.*
 !.env.example
