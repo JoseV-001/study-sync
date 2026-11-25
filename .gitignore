@@ -38,3 +38,14 @@ build/
 # Local launcher credentials
 .study-sync.local.ps1
 application-local.properties
+
+# Databases, backups, runtime data & environment secrets
+*.db
+*.db-shm
+*.db-wal
+*.bak
+data/
+config/
+.env
+.env.*
+!.env.example

@@ -1,16 +1,22 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: study-sync-postgres
+  study-sync:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: study-sync
     restart: unless-stopped
+    network_mode: host
     environment:
-      POSTGRES_DB: study_sync
-      POSTGRES_USER: study_sync
-      POSTGRES_PASSWORD: study_sync
-    ports:
-      - "5432:5432"
+      STUDY_SYNC_PORT: "3001"
+      STUDY_SYNC_DATA_DIR: "/data"
+      JAVA_OPTS: "-Xms128m -Xmx512m"
+      SPRING_PROFILES_ACTIVE: "postgresql"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://127.0.0.1:5432/studysync"
+      SPRING_DATASOURCE_USERNAME: "${POSTGRES_USER}"
+      SPRING_DATASOURCE_PASSWORD: "${POSTGRES_PASSWORD}"
+      DATABASE_URL: "jdbc:postgresql://127.0.0.1:5432/studysync"
+      DATABASE_USERNAME: "${POSTGRES_USER}"
+      DATABASE_PASSWORD: "${POSTGRES_PASSWORD}"
     volumes:
-      - study_sync_postgres_data:/var/lib/postgresql/data
-
-volumes:
-  study_sync_postgres_data:
+      - ./data:/data
+    mem_limit: 768m
